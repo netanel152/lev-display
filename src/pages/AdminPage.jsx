@@ -136,9 +136,9 @@ const AdminPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20 font-admin">
+    <div className="min-h-screen bg-gray-50 pb-32 font-admin">
       <header className="bg-lev-burgundy text-white p-4 flex justify-between items-center sticky top-0 z-10 shadow-md">
-        <h1 className="text-xl font-bold flex items-center gap-2">
+        <h1 className="text-lg md:text-xl font-bold flex items-center gap-2">
           <Heart size={20} fill="white" /> ניהול לב חב"ד
         </h1>
         <div className="flex gap-2">
@@ -148,7 +148,7 @@ const AdminPage = () => {
         </div>
       </header>
 
-      <div className="pt-24 p-4 max-w-2xl mx-auto space-y-4">
+      <div className="pt-6 p-4 max-w-2xl mx-auto space-y-4">
         {/* הגדרות תצוגה */}
         <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
           <h2 className="font-bold text-lg text-gray-900 mb-3 border-b pb-2">הגדרות תצוגה</h2>
@@ -168,25 +168,25 @@ const AdminPage = () => {
 
         {items.map((item) => (
           <div key={item.id} className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center">
-            <div className="flex gap-4 items-center">
+            <div className="flex gap-4 items-center overflow-hidden">
               {item.donorLogo && (
                 <div className="w-12 h-12 bg-gray-50 rounded-lg border flex items-center justify-center overflow-hidden shrink-0">
                   <img src={item.donorLogo} alt="Logo" className="max-w-full max-h-full object-contain" />
                 </div>
               )}
-              <div>
-                <div className="flex items-center gap-2 mb-1">
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2 mb-1">
                   <span className={`text-xs px-2 py-0.5 rounded-full ${item.type === "memorial" ? "bg-orange-100 text-orange-700" : item.type === "birthday" ? "bg-pink-100 text-pink-700" : "bg-green-100 text-green-700"}`}>
                     {item.type === "memorial" ? "זיכרון" : item.type === "birthday" ? "יום הולדת" : "רפואה"}
                   </span>
                   {item.hebrewDate && <span className="text-xs text-gray-600 font-medium">{item.hebrewDate}</span>}
                 </div>
-                <h3 className="font-bold text-lg text-gray-900">{item.mainName}</h3>
-                <p className="text-gray-700 text-sm">{item.subText}</p>
-                {item.donorName && <p className="text-xs text-blue-700 mt-1 font-medium">תורם: {item.donorName}</p>}
+                <h3 className="font-bold text-lg text-gray-900 truncate">{item.mainName}</h3>
+                <p className="text-gray-700 text-sm truncate">{item.subText}</p>
+                {item.donorName && <p className="text-xs text-blue-700 mt-1 font-medium truncate">תורם: {item.donorName}</p>}
               </div>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 shrink-0">
               <button onClick={() => handleEdit(item)} className="text-blue-500 p-2 hover:bg-blue-50 rounded-full"><Pencil size={20} /></button>
               <button onClick={() => handleDelete(item.id)} className="text-red-500 p-2 hover:bg-red-50 rounded-full"><Trash2 size={20} /></button>
             </div>
@@ -194,11 +194,11 @@ const AdminPage = () => {
         ))}
       </div>
 
-      <button onClick={() => setIsFormOpen(true)} className="fixed bottom-6 left-6 bg-lev-blue text-white p-4 rounded-full shadow-lg hover:bg-blue-700 transition"><Plus size={28} /></button>
+      <button onClick={() => setIsFormOpen(true)} className="fixed bottom-6 left-6 bg-lev-blue text-white p-4 rounded-full shadow-lg hover:bg-blue-700 transition z-40"><Plus size={28} /></button>
 
       {isFormOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-4">
-          <div className="bg-white w-full max-w-md rounded-2xl p-6 shadow-2xl animate-fade-in max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+          <div className="bg-white w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl p-6 shadow-2xl animate-fade-in max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold mb-4">{editId ? "עריכת הקדשה" : "הוספת הקדשה חדשה"}</h2>
             <form onSubmit={handleSave} className="space-y-4">
 
@@ -212,7 +212,7 @@ const AdminPage = () => {
               </div>
 
               {/* טקסטים עליונים */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 <div>
                   <label className="block text-sm text-gray-800 font-medium mb-1">כותרת עליונה</label>
                   <input className="w-full p-3 bg-gray-50 rounded-lg border text-gray-900 placeholder:text-gray-400" value={newItem.footerText} onChange={(e) => setNewItem({ ...newItem, footerText: e.target.value })} placeholder="למשל: פעילות קפיטריית..." />
@@ -263,8 +263,8 @@ const AdminPage = () => {
                     />
 
                     {/* אפשרות 2: העלאת קובץ */}
-                    <div className="flex items-center gap-2">
-                      <label className="cursor-pointer bg-gray-100 hover:bg-gray-200 text-gray-600 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <label className="cursor-pointer bg-gray-100 hover:bg-gray-200 text-gray-600 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition w-full sm:w-auto justify-center">
                         <ImageIcon size={16} />
                         העלה לוגו
                         <input
