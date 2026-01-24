@@ -30,7 +30,7 @@ export const MOCK_DATA = [
     type: "birthday",
     title: "חוגגים יום הולדת שמח ל...",
     mainName: "חיים מושקא",
-    subText: "שתחי׳ - בת 5",
+    subText: "לבריאות, אושר והצלחה רבה",
     footerText: 'באהבה ממשפחת לב חב"ד',
     donorName: null,
     donorLogo: null,
