@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
-import { Heart, Flame, Gift, Activity } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Heart, Flame, Gift, Activity, Lock, Maximize, Minimize } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { getTodayHebrewDate } from "../utils/hebrewDate";
 // וודא שהקובץ הזה קיים בתיקיית assets שלך
 import oneTouchLogo from "../assets/onetouch-logo.svg";
@@ -13,9 +14,8 @@ const MOCK_DATA = [
     mainName: "אברהם זערור",
     subText: 'בן אפרים ז"ל',
     notes: 'ת.נ.צ.ב.ה',
-    footerText: 'פעילות קפיטריית החסד לב חב"ד',
-    donorName: "One Touch",
-    donorLogo: oneTouchLogo, // שימוש בלוגו שיובא
+    donorName: null,
+    donorLogo: null,
   },
   {
     id: 2,
@@ -40,6 +40,7 @@ const MOCK_DATA = [
 ];
 
 const DisplayPage = () => {
+  const navigate = useNavigate();
   const [items, setItems] = useState(() => {
     const saved = localStorage.getItem("displayItems");
     return saved ? JSON.parse(saved) : MOCK_DATA;
@@ -47,18 +48,89 @@ const DisplayPage = () => {
   const [index, setIndex] = useState(0);
   const [fade, setFade] = useState(true);
   const [hebrewDate, setHebrewDate] = useState(getTodayHebrewDate());
+  const wakeLock = useRef(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // Wake Lock API implementation
+  useEffect(() => {
+    const requestWakeLock = async () => {
+      try {
+        if ('wakeLock' in navigator) {
+          wakeLock.current = await navigator.wakeLock.request('screen');
+          console.log('Wake Lock is active!');
+          
+          wakeLock.current.addEventListener('release', () => {
+            console.log('Wake Lock released');
+          });
+        }
+      } catch (err) {
+        console.error(`${err.name}, ${err.message}`);
+      }
+    };
+
+    const handleVisibilityChange = async () => {
+      if (wakeLock.current !== null && document.visibilityState === 'visible') {
+        await requestWakeLock();
+      }
+    };
+
+    requestWakeLock();
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      if (wakeLock.current) {
+        wakeLock.current.release();
+        wakeLock.current = null;
+      }
+    };
+  }, []);
+
+  // Handle fullscreen change events
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch((e) => {
+        console.error(`Error attempting to enable fullscreen mode: ${e.message} (${e.name})`);
+      });
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+    }
+  };
+
+  // סינון פריטים שמתאימים להיום בלבד
+  const todayItems = items.filter(item => {
+    const todayGregorian = new Date().toISOString().split('T')[0];
+    const todayHebrew = getTodayHebrewDate();
+
+    // אם לא הוגדר תאריך בכלל - נציג אותו תמיד (כדי לא לאבד מידע שהמשתמש הזין ללא תאריך)
+    // או אם התאריך הלועזי מתאים להיום
+    // או אם התאריך העברי מתאים להיום
+    return !item.date && !item.hebrewDate ||
+      item.date === todayGregorian ||
+      item.hebrewDate === todayHebrew;
+  });
 
   // האזנה לשינויים ב-localStorage (אם נפתח בטאב אחר) + רענון כל 5 שניות
   useEffect(() => {
     const interval = setInterval(() => {
-      // 1. מתחילים בהעלמת השקופית הנוכחית
+      if (todayItems.length === 0) return;
+
       setFade(false);
 
-      // 2. מחכים חצי שנייה (שההעלמות תסתיים) ואז מחליפים תוכן
       setTimeout(() => {
-        setIndex((prev) => (prev + 1) % items.length);
+        setIndex((prev) => (prev + 1) % todayItems.length);
 
-        // בדיקת עדכונים מהניהול
         const saved = localStorage.getItem("displayItems");
         if (saved) {
           const parsed = JSON.parse(saved);
@@ -67,14 +139,13 @@ const DisplayPage = () => {
           }
         }
 
-        // 3. מחזירים את השקיפות (הופעת השקופית החדשה)
         setFade(true);
-      }, 800); // הזמן צריך להיות תואם ל-duration ב-CSS
+      }, 800);
 
-    }, 5000); // זמן כל שקופית
+    }, 5000);
 
     return () => clearInterval(interval);
-  }, [items]);
+  }, [items, todayItems.length]);
 
   useEffect(() => {
     const dateInterval = setInterval(() => {
@@ -82,12 +153,22 @@ const DisplayPage = () => {
       if (newDate !== hebrewDate) {
         setHebrewDate(newDate);
       }
-    }, 60000); // בדיקה כל 60 שניות
+    }, 60000);
 
     return () => clearInterval(dateInterval);
   }, [hebrewDate]);
 
-  const data = items[index % items.length] || items[0]; // Fallback safety
+  // אם אין פריטים להיום, נציג שקופית ברירת מחדל של "לב חב"ד"
+  const data = todayItems.length > 0
+    ? todayItems[index % todayItems.length]
+    : {
+      id: 'empty',
+      type: 'memorial',
+      footerText: 'ברוכים הבאים ללב חב"ד',
+      title: 'הכתובת שלך במרכז הרפואי',
+      mainName: 'לב חב"ד',
+      subText: 'כאן בשבילכם תמיד',
+    };
 
   const getTheme = (type) => {
     switch (type) {
@@ -114,8 +195,30 @@ const DisplayPage = () => {
   return (
     <div className="h-screen w-full bg-lev-yellow relative flex items-center justify-center p-4 md:p-8 overflow-hidden">
 
+      {/* כפתור כניסה למנהלים */}
+      <div className="absolute top-6 left-6 z-50 flex gap-2">
+        <button
+          onClick={toggleFullscreen}
+          className="p-2 bg-white/50 hover:bg-white/80 rounded-full transition-all duration-300 opacity-30 hover:opacity-100 focus:opacity-100"
+          title={isFullscreen ? "יציאה ממסך מלא" : "מסך מלא"}
+        >
+          {isFullscreen ? (
+            <Minimize size={20} className="text-lev-burgundy" />
+          ) : (
+            <Maximize size={20} className="text-lev-burgundy" />
+          )}
+        </button>
+        <button
+          onClick={() => navigate("/login")}
+          className="p-2 bg-white/50 hover:bg-white/80 rounded-full transition-all duration-300 opacity-30 hover:opacity-100 focus:opacity-100"
+          title="כניסה למנהלים"
+        >
+          <Lock size={20} className="text-lev-burgundy" />
+        </button>
+      </div>
+
       {/* תאריך עברי בפינה (מתעדכן אוטומטית) */}
-      <div className="absolute top-6 right-6 z-20 bg-white/90 backdrop-blur px-6 py-3 rounded-full shadow-sm text-lev-burgundy font-bold text-2xl md:text-3xl border-2 border-lev-yellow">
+      <div className="absolute top-6 right-6 z-20 bg-white/95 backdrop-blur px-6 py-3 rounded-full shadow-md text-lev-burgundy font-bold text-2xl md:text-3xl border-2 border-lev-yellow">
         {hebrewDate}
       </div>
       {/* אלמנט כחול תחתון */}
@@ -169,15 +272,15 @@ const DisplayPage = () => {
         <div className="w-full flex justify-between items-end px-6 mb-4 md:mb-6">
 
           {/* אזור תורם - תמונה או טקסט */}
-          <div className="flex flex-col items-start justify-end h-32">
+          <div className="flex flex-col items-start justify-end h-24 md:h-32">
             {data.donorLogo ? (
               <div className="animate-fade-in">
-                <span className="text-xl text-gray-400 block mb-2 mr-1">נתרם ע"י:</span>
-                <img src={data.donorLogo} alt={data.donorName} className="h-24 md:h-32 w-auto object-contain" />
+                <span className="text-lg md:text-xl font-medium text-gray-500 block mb-1 mr-1">נתרם ע"י:</span>
+                <img src={data.donorLogo} alt={data.donorName} className="h-16 md:h-24 w-auto object-contain" />
               </div>
             ) : data.donorName ? (
               <div className="bg-gray-50 px-5 py-3 rounded-xl border border-gray-100 shadow-sm">
-                <span className="text-xs text-gray-400 block">נתרם ע"י:</span>
+                <span className="text-sm text-gray-400 block mb-1">נתרם ע"י:</span>
                 <span className="text-2xl font-bold text-blue-600">
                   {data.donorName}
                 </span>

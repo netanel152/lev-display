@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Plus, Trash2, LogOut, Heart, Pencil, Image as ImageIcon, RotateCcw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-hot-toast";
 import { getHebrewDate } from "../utils/hebrewDate";
 import oneTouchLogo from "../assets/onetouch-logo.svg";
 
@@ -20,7 +21,6 @@ const DEFAULT_ITEMS = [
     type: "birthday",
     mainName: "חיים מושקא",
     subText: "שתחי׳ - בת 5",
-    type: "birthday",
     footerText: 'באהבה ממשפחת לב חב"ד',
   },
   {
@@ -28,7 +28,6 @@ const DEFAULT_ITEMS = [
     type: "healing",
     mainName: "ישראל בן שרה",
     subText: "לרפואה שלמה וקרובה",
-    type: "healing",
     footerText: 'פעילות קפיטריית החסד לב חב"ד',
   },
 ];
@@ -74,6 +73,7 @@ const AdminPage = () => {
   const handleDelete = (id) => {
     if (confirm("בטוח למחוק?")) {
       setItems(items.filter((item) => item.id !== id));
+      toast.error('ההקדשה נמחקה');
     }
   };
 
@@ -87,6 +87,8 @@ const AdminPage = () => {
       notes: item.notes || "",
       donorName: item.donorName || "",
       donorLogo: item.donorLogo || "",
+      title: item.title || "",
+      footerText: item.footerText || "",
     });
     setEditId(item.id);
     setIsFormOpen(true);
@@ -106,6 +108,7 @@ const AdminPage = () => {
       const newId = items.length > 0 ? Math.max(...items.map(i => i.id)) + 1 : 1;
       setItems([...items, { ...newItem, subText: finalSubText, id: newId }]);
     }
+    toast.success('ההקדשה נשמרה בהצלחה!');
     closeForm();
   };
 
@@ -119,6 +122,8 @@ const AdminPage = () => {
       notes: "",
       donorName: "",
       donorLogo: "",
+      title: "",
+      footerText: "",
     });
     setEditId(null);
     setIsFormOpen(false);
@@ -131,7 +136,7 @@ const AdminPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen bg-gray-50 pb-20 font-sans">
       <header className="bg-lev-burgundy text-white p-4 flex justify-between items-center sticky top-0 z-10 shadow-md">
         <h1 className="text-xl font-bold flex items-center gap-2">
           <Heart size={20} fill="white" /> ניהול לב חב"ד
@@ -190,6 +195,18 @@ const AdminPage = () => {
                   <option value="birthday">יום הולדת (בלונים)</option>
                   <option value="healing">לרפואה (דופק)</option>
                 </select>
+              </div>
+
+              {/* טקסטים עליונים */}
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-sm text-gray-600 mb-1">כותרת עליונה</label>
+                  <input className="w-full p-3 bg-gray-50 rounded-lg border" value={newItem.footerText} onChange={(e) => setNewItem({ ...newItem, footerText: e.target.value })} placeholder="למשל: פעילות קפיטריית..." />
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-600 mb-1">כותרת ההקדשה</label>
+                  <input className="w-full p-3 bg-gray-50 rounded-lg border" value={newItem.title} onChange={(e) => setNewItem({ ...newItem, title: e.target.value })} placeholder="למשל: מוקדשת ל..." />
+                </div>
               </div>
 
               {/* תאריכים */}
