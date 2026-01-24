@@ -178,7 +178,7 @@ const AdminPage = () => {
               </div>
 
               {/* טקסטים עליונים */}
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <div>
                   <label className="block text-sm text-gray-800 font-medium mb-1">כותרת עליונה</label>
                   <input className="w-full p-3 bg-gray-50 rounded-lg border text-gray-900 placeholder:text-gray-400" value={newItem.footerText} onChange={(e) => setNewItem({ ...newItem, footerText: e.target.value })} placeholder="למשל: פעילות קפיטריית..." />

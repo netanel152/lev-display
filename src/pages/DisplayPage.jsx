@@ -6,11 +6,11 @@ import { subscribeToItems } from "../services/dataService";
 import { EMPTY_SLIDE_DATA, DEFAULT_SLIDE_DURATION, FADE_DURATION, THEME_COLORS } from "../constants";
 
 const getFontSize = (text) => {
-  if (!text) return "text-8xl md:text-[10rem]";
+  if (!text) return "text-6xl md:text-8xl lg:text-[10rem]";
   const len = text.length;
-  if (len < 10) return "text-8xl md:text-[10rem]";
-  if (len <= 20) return "text-6xl md:text-8xl";
-  return "text-4xl md:text-6xl";
+  if (len < 10) return "text-6xl md:text-8xl lg:text-[10rem]";
+  if (len <= 20) return "text-4xl md:text-7xl lg:text-8xl";
+  return "text-3xl md:text-5xl lg:text-6xl";
 };
 
 const DisplayPage = () => {
@@ -169,32 +169,33 @@ const DisplayPage = () => {
     : EMPTY_SLIDE_DATA;
 
   const getTheme = (type, mainName) => {
+    const iconSize = window.innerWidth < 768 ? 40 : 70; // Responsive icon size logic could be better handled with classes but keeping consistent with prop
     switch (type) {
       case "birthday":
         return {
-          icon: <Gift size={70} />,
+          icon: <Gift size={iconSize} className="md:w-[70px] md:h-[70px]" />,
           color: THEME_COLORS.BIRTHDAY,
         };
       case "healing":
         return {
-          icon: <Activity size={70} />,
+          icon: <Activity size={iconSize} className="md:w-[70px] md:h-[70px]" />,
           color: THEME_COLORS.HEALING,
         };
       case "holiday":
         // בדיקה אם זה פורים
         if (mainName && mainName.includes("פורים")) {
           return {
-            icon: <PartyPopper size={70} />,
+            icon: <PartyPopper size={iconSize} className="md:w-[70px] md:h-[70px]" />,
             color: "text-purple-600",
           };
         }
         return {
-          icon: <Star size={70} />,
+          icon: <Star size={iconSize} className="md:w-[70px] md:h-[70px]" />,
           color: "text-orange-500",
         };
       default: // memorial
         return {
-          icon: <Flame size={70} />,
+          icon: <Flame size={iconSize} className="md:w-[70px] md:h-[70px]" />,
           color: THEME_COLORS.MEMORIAL,
         };
     }
@@ -203,19 +204,19 @@ const DisplayPage = () => {
   const theme = getTheme(data.type, data.mainName);
 
   return (
-    <div className="h-screen w-full bg-lev-yellow relative flex items-center justify-center p-4 md:p-8 overflow-hidden bg-[radial-gradient(circle_at_center,_var(--color-lev-yellow)_0%,_#fbbd08_100%)]">
+    <div className="h-screen w-full bg-lev-yellow relative flex items-center justify-center p-3 md:p-8 overflow-hidden bg-[radial-gradient(circle_at_center,_var(--color-lev-yellow)_0%,_#fbbd08_100%)]">
 
       {/* כפתור כניסה למנהלים */}
-      <div className="absolute top-6 left-6 z-50 flex gap-2">
+      <div className="absolute top-3 left-3 md:top-6 md:left-6 z-50 flex gap-2">
         <button
           onClick={toggleFullscreen}
           className="p-2 bg-white/50 hover:bg-white/80 rounded-full transition-all duration-300 opacity-30 hover:opacity-100 focus:opacity-100"
           title={isFullscreen ? "יציאה ממסך מלא" : "מסך מלא"}
         >
           {isFullscreen ? (
-            <Minimize size={20} className="text-lev-burgundy" />
+            <Minimize size={16} className="text-lev-burgundy md:w-5 md:h-5" />
           ) : (
-            <Maximize size={20} className="text-lev-burgundy" />
+            <Maximize size={16} className="text-lev-burgundy md:w-5 md:h-5" />
           )}
         </button>
         <button
@@ -223,12 +224,12 @@ const DisplayPage = () => {
           className="p-2 bg-white/50 hover:bg-white/80 rounded-full transition-all duration-300 opacity-30 hover:opacity-100 focus:opacity-100"
           title="כניסה למנהלים"
         >
-          <Lock size={20} className="text-lev-burgundy" />
+          <Lock size={16} className="text-lev-burgundy md:w-5 md:h-5" />
         </button>
       </div>
 
       {/* תאריך עברי בפינה (מתעדכן אוטומטית) */}
-      <div className="absolute top-6 right-6 z-20 bg-white/95 backdrop-blur px-6 py-3 rounded-full shadow-lg shadow-black/5 text-lev-burgundy font-bold text-2xl md:text-3xl border-2 border-lev-yellow">
+      <div className="absolute top-3 right-3 md:top-6 md:right-6 z-20 bg-white/95 backdrop-blur px-3 py-1.5 md:px-6 md:py-3 rounded-full shadow-lg shadow-black/5 text-lev-burgundy font-bold text-lg md:text-3xl border md:border-2 border-lev-yellow">
         {hebrewDate}
       </div>
       {/* אלמנט כחול תחתון */}
@@ -239,39 +240,39 @@ const DisplayPage = () => {
       {/* הכרטיס הלבן המרכזי - עם אנימציה משופרת ופס התקדמות */}
       <div
         key={data.id}
-        className={`relative z-10 bg-white w-full max-w-6xl aspect-[4/3] md:aspect-video rounded-[3rem] shadow-2xl shadow-lev-burgundy/10 flex flex-col items-center text-center p-6 md:p-10 transition-all duration-700 ease-in-out transform ${fade ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-4'}`}
+        className={`relative z-10 bg-white w-full max-w-6xl aspect-auto md:aspect-video h-[80vh] md:h-auto rounded-[2rem] md:rounded-[3rem] shadow-2xl shadow-lev-burgundy/10 flex flex-col items-center text-center p-4 md:p-10 transition-all duration-700 ease-in-out transform ${fade ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-4'}`}
       >
         {/* לוגו לב חב"ד */}
-        <div className="flex flex-col items-center mt-2 md:mt-4">
-          <div className="flex items-center gap-3 text-lev-burgundy">
-            <Heart fill="#7A1429" size={65} className="md:w-[80px] md:h-[80px]" />
-            <h1 className="text-7xl md:text-8xl font-black tracking-tighter">
+        <div className="flex flex-col items-center mt-2 md:mt-4 shrink-0">
+          <div className="flex items-center gap-2 md:gap-3 text-lev-burgundy">
+            <Heart fill="#7A1429" size={40} className="md:w-[80px] md:h-[80px]" />
+            <h1 className="text-4xl md:text-8xl font-black tracking-tighter">
               לב חב"ד
             </h1>
           </div>
-          <p className="text-lev-burgundy text-2xl md:text-3xl font-bold mt-1">
+          <p className="text-lev-burgundy text-lg md:text-3xl font-bold mt-1">
             הכתובת שלך במרכז הרפואי
           </p>
         </div>
 
         {/* תוכן ההקדשה */}
-        <div className="flex-1 flex flex-col justify-center items-center w-full space-y-6 my-4">
-          <h2 className="text-3xl md:text-5xl font-bold text-lev-burgundy/90">
+        <div className="flex-1 flex flex-col justify-center items-center w-full space-y-4 md:space-y-6 my-2 md:my-4 overflow-hidden">
+          <h2 className="text-xl md:text-5xl font-bold text-lev-burgundy/90">
             {data.footerText}
-            <div className={`text-2xl md:text-4xl mt-3 font-normal ${theme.color}`}>
+            <div className={`text-lg md:text-4xl mt-1 md:mt-3 font-normal ${theme.color}`}>
               {data.title}
             </div>
           </h2>
 
-          <div className="space-y-3 py-4">
-            <h1 className={`${getFontSize(data.mainName)} font-black text-lev-burgundy drop-shadow-md leading-tight transition-all duration-300`}>
+          <div className="space-y-1 md:space-y-3 py-2 md:py-4 flex flex-col items-center w-full">
+            <h1 className={`${getFontSize(data.mainName)} font-black text-lev-burgundy drop-shadow-md leading-tight transition-all duration-300 break-words max-w-full px-2`}>
               {data.mainName}
             </h1>
-            <h3 className="text-5xl md:text-7xl font-bold text-lev-burgundy opacity-90">
+            <h3 className="text-2xl md:text-7xl font-bold text-lev-burgundy opacity-90">
               {data.subText}
             </h3>
             {data.notes && (
-              <h4 className="text-3xl md:text-4xl font-bold text-lev-burgundy/80 mt-4">
+              <h4 className="text-lg md:text-4xl font-bold text-lev-burgundy/80 mt-2 md:mt-4">
                 {data.notes}
               </h4>
             )}
@@ -279,19 +280,19 @@ const DisplayPage = () => {
         </div>
 
         {/* שורת תחתית: תורם ואייקון */}
-        <div className="w-full flex justify-between items-end px-6 mb-4 md:mb-6">
+        <div className="w-full flex justify-between items-end px-2 md:px-6 mb-2 md:mb-6 shrink-0">
 
           {/* אזור תורם - תמונה או טקסט */}
-          <div className="flex flex-col items-start justify-end h-24 md:h-32">
+          <div className="flex flex-col items-start justify-end h-auto md:h-32">
             {data.donorLogo ? (
               <div className="animate-fade-in">
-                <span className="text-lg md:text-xl font-medium text-gray-500 block mb-1 mr-1">נתרם ע"י:</span>
-                <img src={data.donorLogo} alt={data.donorName} className="h-16 md:h-24 w-auto object-contain" />
+                <span className="text-sm md:text-xl font-medium text-gray-500 block mb-1 mr-1">נתרם ע"י:</span>
+                <img src={data.donorLogo} alt={data.donorName} className="h-12 md:h-24 w-auto object-contain" />
               </div>
             ) : data.donorName ? (
-              <div className="bg-gray-50 px-5 py-3 rounded-xl border border-gray-100 shadow-sm">
-                <span className="text-sm text-gray-400 block mb-1">נתרם ע"י:</span>
-                <span className="text-2xl font-bold text-blue-600">
+              <div className="bg-gray-50 px-3 py-2 md:px-5 md:py-3 rounded-lg md:rounded-xl border border-gray-100 shadow-sm">
+                <span className="text-xs md:text-sm text-gray-400 block mb-1">נתרם ע"י:</span>
+                <span className="text-lg md:text-2xl font-bold text-blue-600">
                   {data.donorName}
                 </span>
               </div>
@@ -299,7 +300,7 @@ const DisplayPage = () => {
           </div>
 
           {/* אייקון אווירה */}
-          <div className={`${theme.color} opacity-90 rotate-12 mb-4 filter drop-shadow-sm transform scale-110 origin-bottom-left`}>
+          <div className={`${theme.color} opacity-90 rotate-12 mb-2 md:mb-4 filter drop-shadow-sm transform scale-110 origin-bottom-left`}>
             {theme.icon}
           </div>
         </div>
