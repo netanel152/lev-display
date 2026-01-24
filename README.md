@@ -1,16 +1,94 @@
-# React + Vite
+# Lev Display - Digital Signage System
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A dynamic digital display system built for "Lev Chabad" to show memorial, birthday, and healing dedications. This project uses **React 19**, **Vite**, and **Tailwind CSS 4**, featuring a flexible architecture that supports both local mock data and a live Firebase backend.
 
-Currently, two official plugins are available:
+## 🚀 Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+-   **Dynamic Slideshow**: Automatically rotates through dedications with smooth fade transitions.
+-   **Smart Scheduling**: Shows specific slides based on Gregorian or Hebrew dates.
+-   **Themes**: Distinct visual themes for Memorial (Candle), Birthday (Balloons), and Healing (Pulse).
+-   **Admin Interface**: Password-protected area to add, edit, and delete slides.
+-   **Service Layer Pattern**: Seamlessly switch between local storage (Mock) and Firebase Firestore/Storage.
+-   **Hebrew Date Integration**: Displays the current Hebrew date automatically.
 
-## React Compiler
+## 🛠️ Tech Stack
 
-The React Compiler is currently not compatible with SWC. See [this issue](https://github.com/vitejs/vite-plugin-react/issues/428) for tracking the progress.
+-   **Framework**: React 19
+-   **Build Tool**: Vite 7
+-   **Styling**: Tailwind CSS 4
+-   **Icons**: Lucide-React
+-   **Backend**: Firebase (Firestore & Storage) or LocalStorage (Mock)
 
-## Expanding the ESLint configuration
+## ⚙️ Configuration & Backend
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+This project implements a **Service Layer** that allows you to toggle between a local development mode and a production-ready Firebase backend using environment variables.
+
+### 1. Mock Mode (Default)
+Uses `localStorage` to persist data in the browser. Images are converted to Base64. Ideal for local development without internet or backend setup.
+
+**Setup**:
+Ensure your `.env` file contains:
+```env
+VITE_USE_MOCK=true
+```
+
+### 2. Firebase Mode
+Uses **Cloud Firestore** for data and **Firebase Storage** for images.
+
+**Setup**:
+1.  Create a project in the [Firebase Console](https://console.firebase.google.com/).
+2.  Enable **Firestore Database** and **Storage**.
+3.  Create a `.env` file in the root directory (if not exists) and set `VITE_USE_MOCK=false`.
+4.  Add your Firebase configuration keys:
+
+```env
+VITE_USE_MOCK=false
+
+VITE_FIREBASE_API_KEY=your_api_key
+VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your_project_id
+VITE_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+VITE_FIREBASE_APP_ID=your_app_id
+```
+
+## 📦 Installation & Running
+
+1.  **Clone the repository**:
+    ```bash
+    git clone https://github.com/your-username/lev-display.git
+    cd lev-display
+    ```
+
+2.  **Install dependencies**:
+    ```bash
+    npm install
+    ```
+
+3.  **Run locally**:
+    ```bash
+    npm run dev
+    ```
+
+4.  **Build for production**:
+    ```bash
+    npm run build
+    ```
+
+## 📂 Project Structure
+
+```
+src/
+├── services/           # Data Service Layer
+│   ├── dataService.js     # Switcher (Mock <-> Firebase)
+│   ├── mockService.js     # LocalStorage implementation
+│   └── firebaseService.js # Firebase implementation
+├── lib/
+│   └── firebase.js     # Firebase initialization
+├── pages/
+│   ├── DisplayPage.jsx # Main slideshow display
+│   └── AdminPage.jsx   # Management interface
+├── utils/
+│   └── hebrewDate.js   # Hebrew date logic
+└── constants.js        # Global configs & Mock Data
+```
