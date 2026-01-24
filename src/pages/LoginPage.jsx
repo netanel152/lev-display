@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Heart, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { STORAGE_KEYS } from "../constants";
 
 const LoginPage = () => {
   const [password, setPassword] = useState("");
@@ -10,9 +11,11 @@ const LoginPage = () => {
     e.preventDefault();
     // בדיקה פשוטה כרגע - בהמשך נחבר ל-Firebase Auth
     if (password === "123456") {
-      localStorage.setItem("isAdmin", "true"); // שמירת מצב התחברות
+      console.log("[LoginPage] Login successful");
+      localStorage.setItem(STORAGE_KEYS.IS_ADMIN, "true"); // שמירת מצב התחברות
       navigate("/admin");
     } else {
+      console.warn("[LoginPage] Login failed: Incorrect password");
       alert("סיסמה שגויה");
     }
   };

@@ -3,10 +3,14 @@ import { Toaster } from 'react-hot-toast';
 import DisplayPage from './pages/DisplayPage';
 import LoginPage from './pages/LoginPage';
 import AdminPage from './pages/AdminPage';
+import { STORAGE_KEYS } from './constants';
 
 // רכיב שמגן על דף הניהול - אם לא התחברת, זורק אותך ללוגין
 const ProtectedRoute = ({ children }) => {
-  const isAdmin = localStorage.getItem('isAdmin');
+  const isAdmin = localStorage.getItem(STORAGE_KEYS.IS_ADMIN);
+  if (!isAdmin) {
+      console.log("[ProtectedRoute] Access denied. Redirecting to login.");
+  }
   return isAdmin ? children : <Navigate to="/login" />;
 };
 

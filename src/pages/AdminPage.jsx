@@ -1,55 +1,23 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Plus, Trash2, LogOut, Heart, Pencil, Image as ImageIcon, RotateCcw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import { getHebrewDate } from "../utils/hebrewDate";
-import oneTouchLogo from "../assets/onetouch-logo.svg";
-
-const DEFAULT_ITEMS = [
-  {
-    id: 1,
-    type: "memorial",
-    mainName: "אברהם זערור",
-    subText: 'בן אפרים ז"ל',
-    hebrewDate: 'כ"ה בתשרי תשפ"ד',
-    notes: 'ת.נ.צ.ב.ה',
-    donorName: "One Touch",
-    donorLogo: oneTouchLogo,
-  },
-  {
-    id: 2,
-    type: "birthday",
-    mainName: "חיים מושקא",
-    subText: "שתחי׳ - בת 5",
-    footerText: 'באהבה ממשפחת לב חב"ד',
-  },
-  {
-    id: 3,
-    type: "healing",
-    mainName: "ישראל בן שרה",
-    subText: "לרפואה שלמה וקרובה",
-    footerText: 'פעילות קפיטריית החסד לב חב"ד',
-  },
-];
+import { subscribeToItems, addItem, updateItem, deleteItem } from "../services/dataService";
+import { STORAGE_KEYS, MOCK_DATA } from "../constants";
 
 const AdminPage = () => {
   const navigate = useNavigate();
 
-  const [items, setItems] = useState(() => {
-    const saved = localStorage.getItem("displayItems");
-    if (saved) return JSON.parse(saved);
-    return DEFAULT_ITEMS;
-  });
+  const [items, setItems] = useState([]);
+  const [imageFile, setImageFile] = useState(null);
 
   useEffect(() => {
-    localStorage.setItem("displayItems", JSON.stringify(items));
-  }, [items]);
-
-  const handleRestoreDefaults = () => {
-    if (confirm("האם לשחזר את נתוני הדוגמה? זה ימחק את הרשימה הנוכחית.")) {
-      setItems(DEFAULT_ITEMS);
-    }
-  };
+    const unsubscribe = subscribeToItems((newItems) => {
+      setItems(newItems);
+    });
+    return () => unsubscribe();
+  }, []);
 
   const [newItem, setNewItem] = useState({
     type: "memorial",
@@ -66,18 +34,26 @@ const AdminPage = () => {
   const [editId, setEditId] = useState(null);
 
   const handleLogout = () => {
-    localStorage.removeItem("isAdmin");
+    console.log("[AdminPage] Logging out");
+    localStorage.removeItem(STORAGE_KEYS.IS_ADMIN);
     navigate("/");
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (confirm("בטוח למחוק?")) {
-      setItems(items.filter((item) => item.id !== id));
-      toast.error('ההקדשה נמחקה');
+      console.log(`[AdminPage] Deleting item ${id}`);
+      try {
+        await deleteItem(id);
+        toast.error('ההקדשה נמחקה');
+      } catch (error) {
+        console.error("Failed to delete item:", error);
+        toast.error('שגיאה במחיקת הפריט');
+      }
     }
   };
 
   const handleEdit = (item) => {
+    console.log(`[AdminPage] Opening edit form for item ${item.id}`);
     setNewItem({
       type: item.type,
       mainName: item.mainName,
@@ -91,28 +67,34 @@ const AdminPage = () => {
       footerText: item.footerText || "",
     });
     setEditId(item.id);
+    setImageFile(null);
     setIsFormOpen(true);
   };
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
+    console.log("[AdminPage] Saving item...");
     const finalSubText = newItem.subText || newItem.hebrewDate;
+    const itemData = { ...newItem, subText: finalSubText };
 
-    if (editId) {
-      setItems(items.map(item =>
-        item.id === editId
-          ? { ...newItem, subText: finalSubText, id: editId }
-          : item
-      ));
-    } else {
-      const newId = items.length > 0 ? Math.max(...items.map(i => i.id)) + 1 : 1;
-      setItems([...items, { ...newItem, subText: finalSubText, id: newId }]);
+    try {
+      if (editId) {
+        console.log(`[AdminPage] Updating existing item ${editId}`);
+        await updateItem(editId, itemData, imageFile);
+      } else {
+        console.log("[AdminPage] Creating new item");
+        await addItem(itemData, imageFile);
+      }
+      toast.success('ההקדשה נשמרה בהצלחה!');
+      closeForm();
+    } catch (error) {
+      console.error("Failed to save item:", error);
+      toast.error('שגיאה בשמירת הפריט');
     }
-    toast.success('ההקדשה נשמרה בהצלחה!');
-    closeForm();
   };
 
   const closeForm = () => {
+    console.log("[AdminPage] Closing form");
     setNewItem({
       type: "memorial",
       mainName: "",
@@ -126,6 +108,7 @@ const AdminPage = () => {
       footerText: "",
     });
     setEditId(null);
+    setImageFile(null);
     setIsFormOpen(false);
   };
 
@@ -142,9 +125,6 @@ const AdminPage = () => {
           <Heart size={20} fill="white" /> ניהול לב חב"ד
         </h1>
         <div className="flex gap-2">
-          <button onClick={handleRestoreDefaults} className="text-sm bg-white/20 px-3 py-1 rounded hover:bg-white/30 flex items-center gap-1" title="שחזר נתוני דוגמה">
-            <RotateCcw size={16} />
-          </button>
           <button onClick={handleLogout} className="text-sm bg-white/20 px-3 py-1 rounded hover:bg-white/30 flex items-center gap-1">
             <LogOut size={16} /> יציאה
           </button>
@@ -260,6 +240,7 @@ const AdminPage = () => {
                           onChange={(e) => {
                             const file = e.target.files[0];
                             if (file) {
+                              setImageFile(file);
                               const reader = new FileReader();
                               reader.onloadend = () => {
                                 setNewItem({ ...newItem, donorLogo: reader.result });

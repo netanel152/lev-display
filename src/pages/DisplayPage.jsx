@@ -1,55 +1,35 @@
 import { useState, useEffect, useRef } from "react";
-import { Heart, Flame, Gift, Activity, Lock, Maximize, Minimize } from "lucide-react";
+import { Heart, Flame, Gift, Activity, Lock, Maximize, Minimize, Star, PartyPopper } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { getTodayHebrewDate } from "../utils/hebrewDate";
-// וודא שהקובץ הזה קיים בתיקיית assets שלך
-import oneTouchLogo from "../assets/onetouch-logo.svg";
+import { getTodayHebrewDate, getCurrentHoliday } from "../utils/hebrewDate";
+import { subscribeToItems } from "../services/dataService";
+import { EMPTY_SLIDE_DATA, DEFAULT_SLIDE_DURATION, FADE_DURATION, THEME_COLORS } from "../constants";
 
-// נתוני דמה לבדיקה
-const MOCK_DATA = [
-  {
-    id: 1,
-    type: "memorial",
-    title: "מוקדשת לזיכרון ולעילוי נשמת",
-    mainName: "אברהם זערור",
-    subText: 'בן אפרים ז"ל',
-    notes: 'ת.נ.צ.ב.ה',
-    donorName: null,
-    donorLogo: null,
-  },
-  {
-    id: 2,
-    type: "birthday",
-    title: "חוגגים יום הולדת שמח ל...",
-    mainName: "חיים מושקא",
-    subText: "שתחי׳ - בת 5",
-    footerText: 'באהבה ממשפחת לב חב"ד',
-    donorName: null,
-    donorLogo: null,
-  },
-  {
-    id: 3,
-    type: "healing",
-    title: "נא להתפלל לרפואת",
-    mainName: "ישראל בן שרה",
-    subText: "לרפואה שלמה וקרובה",
-    footerText: 'פעילות קפיטריית החסד לב חב"ד',
-    donorName: null,
-    donorLogo: null,
-  },
-];
+const getFontSize = (text) => {
+  if (!text) return "text-8xl md:text-[10rem]";
+  const len = text.length;
+  if (len < 10) return "text-8xl md:text-[10rem]";
+  if (len <= 20) return "text-6xl md:text-8xl";
+  return "text-4xl md:text-6xl";
+};
 
 const DisplayPage = () => {
   const navigate = useNavigate();
-  const [items, setItems] = useState(() => {
-    const saved = localStorage.getItem("displayItems");
-    return saved ? JSON.parse(saved) : MOCK_DATA;
-  });
+  const [items, setItems] = useState([]);
   const [index, setIndex] = useState(0);
   const [fade, setFade] = useState(true);
   const [hebrewDate, setHebrewDate] = useState(getTodayHebrewDate());
   const wakeLock = useRef(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // Subscribe to data changes
+  useEffect(() => {
+    const unsubscribe = subscribeToItems((newItems) => {
+      console.log(`[DisplayPage] Received ${newItems.length} items from service.`);
+      setItems(newItems);
+    });
+    return () => unsubscribe();
+  }, []);
 
   // Wake Lock API implementation
   useEffect(() => {
@@ -57,14 +37,14 @@ const DisplayPage = () => {
       try {
         if ('wakeLock' in navigator) {
           wakeLock.current = await navigator.wakeLock.request('screen');
-          console.log('Wake Lock is active!');
-          
+          console.log('[DisplayPage] Wake Lock is active!');
+
           wakeLock.current.addEventListener('release', () => {
-            console.log('Wake Lock released');
+            console.log('[DisplayPage] Wake Lock released');
           });
         }
       } catch (err) {
-        console.error(`${err.name}, ${err.message}`);
+        console.error(`[DisplayPage] Wake Lock error: ${err.name}, ${err.message}`);
       }
     };
 
@@ -89,7 +69,9 @@ const DisplayPage = () => {
   // Handle fullscreen change events
   useEffect(() => {
     const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
+      const isFs = !!document.fullscreenElement;
+      setIsFullscreen(isFs);
+      console.log(`[DisplayPage] Fullscreen changed: ${isFs}`);
     };
 
     document.addEventListener('fullscreenchange', handleFullscreenChange);
@@ -98,51 +80,74 @@ const DisplayPage = () => {
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch((e) => {
-        console.error(`Error attempting to enable fullscreen mode: ${e.message} (${e.name})`);
+      document.documentElement.requestFullscreen().then(() => {
+        console.log("[DisplayPage] Entered fullscreen");
+      }).catch((e) => {
+        console.error(`[DisplayPage] Error entering fullscreen: ${e.message} (${e.name})`);
       });
     } else {
       if (document.exitFullscreen) {
-        document.exitFullscreen();
+        document.exitFullscreen().then(() => {
+          console.log("[DisplayPage] Exited fullscreen");
+        });
       }
     }
   };
 
+  // בדיקת חג נוכחי
+  const currentHoliday = getCurrentHoliday();
+
   // סינון פריטים שמתאימים להיום בלבד
-  const todayItems = items.filter(item => {
-    const todayGregorian = new Date().toISOString().split('T')[0];
-    const todayHebrew = getTodayHebrewDate();
+  const todayItems = (() => {
+    const filtered = items.filter(item => {
+      // שימוש בתאריך מקומי ולא UTC כדי למנוע בעיות בחילופי יום
+      const todayGregorian = new Date().toLocaleDateString('en-CA');
+      const todayHebrew = getTodayHebrewDate();
 
-    // אם לא הוגדר תאריך בכלל - נציג אותו תמיד (כדי לא לאבד מידע שהמשתמש הזין ללא תאריך)
-    // או אם התאריך הלועזי מתאים להיום
-    // או אם התאריך העברי מתאים להיום
-    return !item.date && !item.hebrewDate ||
-      item.date === todayGregorian ||
-      item.hebrewDate === todayHebrew;
-  });
+      return !item.date && !item.hebrewDate ||
+        item.date === todayGregorian ||
+        item.hebrewDate === todayHebrew;
+    });
 
-  // האזנה לשינויים ב-localStorage (אם נפתח בטאב אחר) + רענון כל 5 שניות
+    if (currentHoliday) {
+      const holidaySlide = {
+        id: 'holiday',
+        type: 'holiday',
+        mainName: currentHoliday,
+        subText: 'חג שמח!',
+        footerText: 'לב חב"ד מאחלים'
+      };
+      return [holidaySlide, ...filtered];
+    }
+
+    return filtered;
+  })();
+
+  // וודא שהאינדקס תקין אם כמות הפריטים השתנתה
+  useEffect(() => {
+    if (todayItems.length > 0 && index >= todayItems.length) {
+      setIndex(0);
+    }
+  }, [todayItems.length, index]);
+
+  // Slide rotation and data refresh logic
   useEffect(() => {
     const interval = setInterval(() => {
-      if (todayItems.length === 0) return;
-
       setFade(false);
 
       setTimeout(() => {
-        setIndex((prev) => (prev + 1) % todayItems.length);
-
-        const saved = localStorage.getItem("displayItems");
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (JSON.stringify(parsed) !== JSON.stringify(items)) {
-            setItems(parsed);
-          }
+        if (todayItems.length > 0) {
+          setIndex((prev) => {
+            const nextIndex = (prev + 1) % todayItems.length;
+            console.log(`[DisplayPage] Rotating slide to index ${nextIndex}`);
+            return nextIndex;
+          });
         }
 
         setFade(true);
-      }, 800);
+      }, FADE_DURATION);
 
-    }, 5000);
+    }, DEFAULT_SLIDE_DURATION);
 
     return () => clearInterval(interval);
   }, [items, todayItems.length]);
@@ -161,39 +166,44 @@ const DisplayPage = () => {
   // אם אין פריטים להיום, נציג שקופית ברירת מחדל של "לב חב"ד"
   const data = todayItems.length > 0
     ? todayItems[index % todayItems.length]
-    : {
-      id: 'empty',
-      type: 'memorial',
-      footerText: 'ברוכים הבאים ללב חב"ד',
-      title: 'הכתובת שלך במרכז הרפואי',
-      mainName: 'לב חב"ד',
-      subText: 'כאן בשבילכם תמיד',
-    };
+    : EMPTY_SLIDE_DATA;
 
-  const getTheme = (type) => {
+  const getTheme = (type, mainName) => {
     switch (type) {
       case "birthday":
         return {
           icon: <Gift size={70} />,
-          color: "text-pink-600",
+          color: THEME_COLORS.BIRTHDAY,
         };
       case "healing":
         return {
           icon: <Activity size={70} />,
-          color: "text-green-600",
+          color: THEME_COLORS.HEALING,
+        };
+      case "holiday":
+        // בדיקה אם זה פורים
+        if (mainName && mainName.includes("פורים")) {
+          return {
+            icon: <PartyPopper size={70} />,
+            color: "text-purple-600",
+          };
+        }
+        return {
+          icon: <Star size={70} />,
+          color: "text-orange-500",
         };
       default: // memorial
         return {
           icon: <Flame size={70} />,
-          color: "text-lev-burgundy",
+          color: THEME_COLORS.MEMORIAL,
         };
     }
   };
 
-  const theme = getTheme(data.type);
+  const theme = getTheme(data.type, data.mainName);
 
   return (
-    <div className="h-screen w-full bg-lev-yellow relative flex items-center justify-center p-4 md:p-8 overflow-hidden">
+    <div className="h-screen w-full bg-lev-yellow relative flex items-center justify-center p-4 md:p-8 overflow-hidden bg-[radial-gradient(circle_at_center,_var(--color-lev-yellow)_0%,_#fbbd08_100%)]">
 
       {/* כפתור כניסה למנהלים */}
       <div className="absolute top-6 left-6 z-50 flex gap-2">
@@ -218,7 +228,7 @@ const DisplayPage = () => {
       </div>
 
       {/* תאריך עברי בפינה (מתעדכן אוטומטית) */}
-      <div className="absolute top-6 right-6 z-20 bg-white/95 backdrop-blur px-6 py-3 rounded-full shadow-md text-lev-burgundy font-bold text-2xl md:text-3xl border-2 border-lev-yellow">
+      <div className="absolute top-6 right-6 z-20 bg-white/95 backdrop-blur px-6 py-3 rounded-full shadow-lg shadow-black/5 text-lev-burgundy font-bold text-2xl md:text-3xl border-2 border-lev-yellow">
         {hebrewDate}
       </div>
       {/* אלמנט כחול תחתון */}
@@ -226,10 +236,10 @@ const DisplayPage = () => {
         <div className="absolute left-1/2 -translate-x-1/2 -top-4 md:-top-6 w-0 h-0 border-l-[20px] md:border-l-[30px] border-l-transparent border-r-[20px] md:border-r-[30px] border-r-transparent border-b-[20px] md:border-b-[30px] border-b-lev-blue"></div>
       </div>
 
-      {/* הכרטיס הלבן המרכזי - ללא מסגרת ירוקה */}
+      {/* הכרטיס הלבן המרכזי - עם אנימציה משופרת ופס התקדמות */}
       <div
         key={data.id}
-        className="relative z-10 bg-white w-full max-w-6xl aspect-[4/3] md:aspect-video rounded-[3rem] shadow-2xl flex flex-col items-center text-center p-6 md:p-10"
+        className={`relative z-10 bg-white w-full max-w-6xl aspect-[4/3] md:aspect-video rounded-[3rem] shadow-2xl shadow-lev-burgundy/10 flex flex-col items-center text-center p-6 md:p-10 transition-all duration-700 ease-in-out transform ${fade ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-4'}`}
       >
         {/* לוגו לב חב"ד */}
         <div className="flex flex-col items-center mt-2 md:mt-4">
@@ -245,7 +255,7 @@ const DisplayPage = () => {
         </div>
 
         {/* תוכן ההקדשה */}
-        <div className="flex-1 flex flex-col justify-center items-center w-full space-y-6 animate-fade-in my-4">
+        <div className="flex-1 flex flex-col justify-center items-center w-full space-y-6 my-4">
           <h2 className="text-3xl md:text-5xl font-bold text-lev-burgundy/90">
             {data.footerText}
             <div className={`text-2xl md:text-4xl mt-3 font-normal ${theme.color}`}>
@@ -254,7 +264,7 @@ const DisplayPage = () => {
           </h2>
 
           <div className="space-y-3 py-4">
-            <h1 className="text-8xl md:text-[8rem] lg:text-[10rem] font-black text-lev-burgundy drop-shadow-md leading-tight">
+            <h1 className={`${getFontSize(data.mainName)} font-black text-lev-burgundy drop-shadow-md leading-tight transition-all duration-300`}>
               {data.mainName}
             </h1>
             <h3 className="text-5xl md:text-7xl font-bold text-lev-burgundy opacity-90">
@@ -297,5 +307,4 @@ const DisplayPage = () => {
     </div>
   );
 };
-
 export default DisplayPage;
