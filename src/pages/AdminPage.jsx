@@ -136,7 +136,7 @@ const AdminPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20 font-sans">
+    <div className="min-h-screen bg-gray-50 pb-20 font-admin">
       <header className="bg-lev-burgundy text-white p-4 flex justify-between items-center sticky top-0 z-10 shadow-md">
         <h1 className="text-xl font-bold flex items-center gap-2">
           <Heart size={20} fill="white" /> ניהול לב חב"ד
@@ -165,11 +165,11 @@ const AdminPage = () => {
                   <span className={`text-xs px-2 py-0.5 rounded-full ${item.type === "memorial" ? "bg-orange-100 text-orange-700" : item.type === "birthday" ? "bg-pink-100 text-pink-700" : "bg-green-100 text-green-700"}`}>
                     {item.type === "memorial" ? "זיכרון" : item.type === "birthday" ? "יום הולדת" : "רפואה"}
                   </span>
-                  {item.hebrewDate && <span className="text-xs text-gray-400">{item.hebrewDate}</span>}
+                  {item.hebrewDate && <span className="text-xs text-gray-600 font-medium">{item.hebrewDate}</span>}
                 </div>
-                <h3 className="font-bold text-lg">{item.mainName}</h3>
-                <p className="text-gray-500 text-sm">{item.subText}</p>
-                {item.donorName && <p className="text-xs text-blue-600 mt-1">תורם: {item.donorName}</p>}
+                <h3 className="font-bold text-lg text-gray-900">{item.mainName}</h3>
+                <p className="text-gray-700 text-sm">{item.subText}</p>
+                {item.donorName && <p className="text-xs text-blue-700 mt-1 font-medium">תורם: {item.donorName}</p>}
               </div>
             </div>
             <div className="flex gap-2">
@@ -189,8 +189,8 @@ const AdminPage = () => {
             <form onSubmit={handleSave} className="space-y-4">
 
               <div>
-                <label className="block text-sm text-gray-600 mb-1">סוג אירוע</label>
-                <select className="w-full p-3 bg-gray-50 rounded-lg border" value={newItem.type} onChange={(e) => setNewItem({ ...newItem, type: e.target.value })}>
+                <label className="block text-sm text-gray-800 font-medium mb-1">סוג אירוע</label>
+                <select className="w-full p-3 bg-gray-50 rounded-lg border text-gray-900" value={newItem.type} onChange={(e) => setNewItem({ ...newItem, type: e.target.value })}>
                   <option value="memorial">לזיכרון (נר)</option>
                   <option value="birthday">יום הולדת (בלונים)</option>
                   <option value="healing">לרפואה (דופק)</option>
@@ -200,49 +200,49 @@ const AdminPage = () => {
               {/* טקסטים עליונים */}
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-sm text-gray-600 mb-1">כותרת עליונה</label>
-                  <input className="w-full p-3 bg-gray-50 rounded-lg border" value={newItem.footerText} onChange={(e) => setNewItem({ ...newItem, footerText: e.target.value })} placeholder="למשל: פעילות קפיטריית..." />
+                  <label className="block text-sm text-gray-800 font-medium mb-1">כותרת עליונה</label>
+                  <input className="w-full p-3 bg-gray-50 rounded-lg border text-gray-900 placeholder:text-gray-400" value={newItem.footerText} onChange={(e) => setNewItem({ ...newItem, footerText: e.target.value })} placeholder="למשל: פעילות קפיטריית..." />
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-600 mb-1">כותרת ההקדשה</label>
-                  <input className="w-full p-3 bg-gray-50 rounded-lg border" value={newItem.title} onChange={(e) => setNewItem({ ...newItem, title: e.target.value })} placeholder="למשל: מוקדשת ל..." />
+                  <label className="block text-sm text-gray-800 font-medium mb-1">כותרת ההקדשה</label>
+                  <input className="w-full p-3 bg-gray-50 rounded-lg border text-gray-900 placeholder:text-gray-400" value={newItem.title} onChange={(e) => setNewItem({ ...newItem, title: e.target.value })} placeholder="למשל: מוקדשת ל..." />
                 </div>
               </div>
 
               {/* תאריכים */}
               <div>
-                <label className="block text-sm text-gray-600 mb-1">תאריך</label>
+                <label className="block text-sm text-gray-800 font-medium mb-1">תאריך</label>
                 <div className="flex gap-2">
-                  <input type="date" className="w-1/3 p-3 bg-gray-50 rounded-lg border" value={newItem.date} onChange={handleDateChange} />
-                  <input placeholder="עברי" className="w-2/3 p-3 bg-gray-50 rounded-lg border text-lev-blue" value={newItem.hebrewDate} onChange={(e) => setNewItem({ ...newItem, hebrewDate: e.target.value })} />
+                  <input type="date" className="w-1/3 p-3 bg-gray-50 rounded-lg border text-gray-900" value={newItem.date} onChange={handleDateChange} />
+                  <input placeholder="עברי" className="w-2/3 p-3 bg-gray-50 rounded-lg border text-lev-blue font-medium placeholder:text-gray-400" value={newItem.hebrewDate} onChange={(e) => setNewItem({ ...newItem, hebrewDate: e.target.value })} />
                 </div>
               </div>
 
               {/* פרטי שם */}
               <div>
-                <label className="block text-sm text-gray-600 mb-1">שם מלא</label>
-                <input required className="w-full p-3 bg-gray-50 rounded-lg border" value={newItem.mainName} onChange={(e) => setNewItem({ ...newItem, mainName: e.target.value })} />
+                <label className="block text-sm text-gray-800 font-medium mb-1">שם מלא</label>
+                <input required className="w-full p-3 bg-gray-50 rounded-lg border text-gray-900" value={newItem.mainName} onChange={(e) => setNewItem({ ...newItem, mainName: e.target.value })} />
               </div>
 
               <div>
-                <label className="block text-sm text-gray-600 mb-1">טקסט נוסף (ז"ל / שתחי')</label>
-                <input className="w-full p-3 bg-gray-50 rounded-lg border" value={newItem.subText} onChange={(e) => setNewItem({ ...newItem, subText: e.target.value })} />
+                <label className="block text-sm text-gray-800 font-medium mb-1">טקסט נוסף (ז"ל / שתחי')</label>
+                <input className="w-full p-3 bg-gray-50 rounded-lg border text-gray-900" value={newItem.subText} onChange={(e) => setNewItem({ ...newItem, subText: e.target.value })} />
               </div>
 
               {/* פרטי תורם */}
               <div className="border-t pt-4 mt-4">
-                <p className="text-sm font-bold text-gray-700 mb-2">פרטי תורם (אופציונלי)</p>
+                <p className="text-sm font-bold text-gray-800 mb-2">פרטי תורם (אופציונלי)</p>
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-xs text-gray-500 mb-1">שם התורם</label>
-                    <input className="w-full p-3 bg-gray-50 rounded-lg border" value={newItem.donorName} onChange={(e) => setNewItem({ ...newItem, donorName: e.target.value })} placeholder="למשל: משפחת כהן" />
+                    <label className="block text-xs text-gray-600 font-medium mb-1">שם התורם</label>
+                    <input className="w-full p-3 bg-gray-50 rounded-lg border text-gray-900 placeholder:text-gray-400" value={newItem.donorName} onChange={(e) => setNewItem({ ...newItem, donorName: e.target.value })} placeholder="למשל: משפחת כהן" />
                   </div>
                   <div>
-                    <label className="block text-xs text-gray-500 mb-1 flex items-center gap-1"><ImageIcon size={12} /> לוגו תורם (URL או העלאה)</label>
+                    <label className="block text-xs text-gray-600 font-medium mb-1 flex items-center gap-1"><ImageIcon size={12} /> לוגו תורם (URL או העלאה)</label>
 
                     {/* אפשרות 1: הדבקת קישור */}
                     <input
-                      className="w-full p-3 bg-gray-50 rounded-lg border text-left ltr mb-2"
+                      className="w-full p-3 bg-gray-50 rounded-lg border text-left ltr mb-2 text-gray-900 placeholder:text-gray-400"
                       value={newItem.donorLogo}
                       onChange={(e) => setNewItem({ ...newItem, donorLogo: e.target.value })}
                       placeholder="https://..."

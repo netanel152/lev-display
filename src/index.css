@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800&family=Rubik:wght@400;500;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700&family=Rubik:wght@400;500;700;900&display=swap');
 
 @import "tailwindcss";
 
@@ -8,6 +8,7 @@
   --color-lev-burgundy: #7A1429;
 
   --font-sans: "David", "Rubik", "Assistant", sans-serif;
+  --font-admin: "Assistant", sans-serif;
 
   --animate-fade-in: fadeIn 0.7s ease-in-out;
 
