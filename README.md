@@ -10,6 +10,7 @@ A dynamic digital display system built for "Lev Chabad" to show memorial, birthd
 -   **Admin Interface**: Password-protected area to add, edit, and delete slides.
 -   **Service Layer Pattern**: Seamlessly switch between local storage (Mock) and Firebase Firestore/Storage.
 -   **Hebrew Date Integration**: Displays the current Hebrew date automatically.
+-   **Wake Lock Support**: Prevents the screen from sleeping while in display mode.
 
 ## 🛠️ Tech Stack
 
@@ -75,6 +76,30 @@ VITE_FIREBASE_APP_ID=your_app_id
     npm run build
     ```
 
+## 🧪 Testing
+
+This project uses **Vitest** for unit and integration testing.
+
+To run the tests:
+```bash
+npm test
+```
+
+## 📱 Progressive Web App (PWA)
+
+This application is configured as a PWA, meaning it can be installed on supported devices and work offline (depending on caching strategies).
+
+-   **Manifest**: Configured in `vite.config.js` with name "Lev Display".
+-   **Service Worker**: Auto-updates by default.
+
+## 🧹 Linting
+
+To ensure code quality and consistent formatting:
+
+```bash
+npm run lint
+```
+
 ## 📂 Project Structure
 
 ```
@@ -87,7 +112,8 @@ src/
 │   └── firebase.js     # Firebase initialization
 ├── pages/
 │   ├── DisplayPage.jsx # Main slideshow display
-│   └── AdminPage.jsx   # Management interface
+│   ├── AdminPage.jsx   # Management interface
+│   └── LoginPage.jsx   # Admin authentication
 ├── utils/
 │   └── hebrewDate.js   # Hebrew date logic
 └── constants.js        # Global configs & Mock Data
