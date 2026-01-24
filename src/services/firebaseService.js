@@ -4,6 +4,7 @@ import {
   addDoc, 
   updateDoc, 
   deleteDoc, 
+  setDoc,
   doc, 
   query, 
   orderBy 
@@ -114,6 +115,32 @@ export const deleteItem = async (id) => {
     return true;
   } catch (error) {
     console.error("Error deleting firebase item:", error);
+    throw error;
+  }
+};
+
+export const subscribeToSettings = (callback) => {
+  const docRef = doc(db, "settings", "general");
+  const unsubscribe = onSnapshot(docRef, (docSnap) => {
+    if (docSnap.exists()) {
+      callback(docSnap.data());
+    } else {
+      // Default settings if document doesn't exist
+      callback({ slideDuration: 5000 });
+    }
+  }, (error) => {
+    console.error("Error fetching settings:", error);
+  });
+  return unsubscribe;
+};
+
+export const updateSettings = async (newSettings) => {
+  try {
+    const docRef = doc(db, "settings", "general");
+    await setDoc(docRef, newSettings, { merge: true });
+    return newSettings;
+  } catch (error) {
+    console.error("Error updating settings:", error);
     throw error;
   }
 };

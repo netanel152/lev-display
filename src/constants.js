@@ -2,6 +2,7 @@
 export const STORAGE_KEYS = {
   DISPLAY_ITEMS: "displayItems",
   IS_ADMIN: "isAdmin",
+  APP_SETTINGS: "appSettings",
 };
 
 export const DEFAULT_SLIDE_DURATION = 5000; // 5 seconds

@@ -98,3 +98,31 @@ export const deleteItem = async (id) => {
     throw error;
   }
 };
+
+const getSettings = () => {
+  return safeJSONParse(localStorage.getItem(STORAGE_KEYS.APP_SETTINGS), { slideDuration: 5000 });
+};
+
+const saveSettings = (settings) => {
+  localStorage.setItem(STORAGE_KEYS.APP_SETTINGS, JSON.stringify(settings));
+  window.dispatchEvent(new Event('storage'));
+};
+
+export const subscribeToSettings = (callback) => {
+  callback(getSettings());
+
+  const handleStorageChange = (e) => {
+    if (e.key === STORAGE_KEYS.APP_SETTINGS || e.type === 'storage') {
+      callback(getSettings());
+    }
+  };
+
+  window.addEventListener('storage', handleStorageChange);
+  return () => window.removeEventListener('storage', handleStorageChange);
+};
+
+export const updateSettings = async (newSettings) => {
+  const current = getSettings();
+  saveSettings({ ...current, ...newSettings });
+  return getSettings();
+};

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Heart, Flame, Gift, Activity, Lock, Maximize, Minimize, Star, PartyPopper } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { getTodayHebrewDate, getCurrentHoliday } from "../utils/hebrewDate";
-import { subscribeToItems } from "../services/dataService";
+import { subscribeToItems, subscribeToSettings } from "../services/dataService";
 import { EMPTY_SLIDE_DATA, DEFAULT_SLIDE_DURATION, FADE_DURATION, THEME_COLORS } from "../constants";
 
 const getFontSize = (text) => {
@@ -21,14 +21,25 @@ const DisplayPage = () => {
   const [hebrewDate, setHebrewDate] = useState(getTodayHebrewDate());
   const wakeLock = useRef(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [slideDuration, setSlideDuration] = useState(DEFAULT_SLIDE_DURATION);
 
   // Subscribe to data changes
   useEffect(() => {
-    const unsubscribe = subscribeToItems((newItems) => {
+    const unsubscribeItems = subscribeToItems((newItems) => {
       console.log(`[DisplayPage] Received ${newItems.length} items from service.`);
       setItems(newItems);
     });
-    return () => unsubscribe();
+
+    const unsubscribeSettings = subscribeToSettings((settings) => {
+      if (settings && settings.slideDuration) {
+        setSlideDuration(settings.slideDuration);
+      }
+    });
+
+    return () => {
+      unsubscribeItems();
+      unsubscribeSettings();
+    };
   }, []);
 
   // Wake Lock API implementation
@@ -147,10 +158,10 @@ const DisplayPage = () => {
         setFade(true);
       }, FADE_DURATION);
 
-    }, DEFAULT_SLIDE_DURATION);
+    }, slideDuration);
 
     return () => clearInterval(interval);
-  }, [items, todayItems.length]);
+  }, [items, todayItems.length, slideDuration]);
 
   useEffect(() => {
     const dateInterval = setInterval(() => {

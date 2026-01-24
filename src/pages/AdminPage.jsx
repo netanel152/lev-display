@@ -1,23 +1,40 @@
 import { useState, useEffect } from "react";
-import { Plus, Trash2, LogOut, Heart, Pencil, Image as ImageIcon, RotateCcw } from "lucide-react";
+import { Plus, Trash2, LogOut, Heart, Pencil, Image as ImageIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import { getHebrewDate } from "../utils/hebrewDate";
-import { subscribeToItems, addItem, updateItem, deleteItem } from "../services/dataService";
-import { STORAGE_KEYS, MOCK_DATA } from "../constants";
+import { subscribeToItems, addItem, updateItem, deleteItem, subscribeToSettings, updateSettings } from "../services/dataService";
+import { STORAGE_KEYS } from "../constants";
 
 const AdminPage = () => {
   const navigate = useNavigate();
 
   const [items, setItems] = useState([]);
   const [imageFile, setImageFile] = useState(null);
+  const [slideDuration, setSlideDuration] = useState(5);
 
   useEffect(() => {
-    const unsubscribe = subscribeToItems((newItems) => {
+    const unsubscribeItems = subscribeToItems((newItems) => {
       setItems(newItems);
     });
-    return () => unsubscribe();
+
+    const unsubscribeSettings = subscribeToSettings((settings) => {
+      if (settings && settings.slideDuration) {
+        setSlideDuration(settings.slideDuration / 1000);
+      }
+    });
+
+    return () => {
+      unsubscribeItems();
+      unsubscribeSettings();
+    };
   }, []);
+
+  const handleDurationChange = (e) => {
+    const newVal = parseInt(e.target.value, 10);
+    setSlideDuration(newVal);
+    updateSettings({ slideDuration: newVal * 1000 });
+  };
 
   const [newItem, setNewItem] = useState({
     type: "memorial",
@@ -131,7 +148,24 @@ const AdminPage = () => {
         </div>
       </header>
 
-      <div className="p-4 max-w-2xl mx-auto space-y-4">
+      <div className="pt-24 p-4 max-w-2xl mx-auto space-y-4">
+        {/* הגדרות תצוגה */}
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+          <h2 className="font-bold text-lg text-gray-900 mb-3 border-b pb-2">הגדרות תצוגה</h2>
+          <div className="flex items-center gap-4">
+            <label className="text-gray-700 font-medium whitespace-nowrap">זמן הצגת שקופית:</label>
+            <input
+              type="range"
+              min="3"
+              max="20"
+              value={slideDuration}
+              onChange={handleDurationChange}
+              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-lev-blue"
+            />
+            <span className="w-12 text-center font-bold text-lev-blue bg-blue-50 py-1 rounded-md">{slideDuration} ש'</span>
+          </div>
+        </div>
+
         {items.map((item) => (
           <div key={item.id} className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center">
             <div className="flex gap-4 items-center">

@@ -7,5 +7,7 @@ export const subscribeToItems = useMock ? mockService.subscribeToItems : firebas
 export const addItem = useMock ? mockService.addItem : firebaseService.addItem;
 export const updateItem = useMock ? mockService.updateItem : firebaseService.updateItem;
 export const deleteItem = useMock ? mockService.deleteItem : firebaseService.deleteItem;
+export const subscribeToSettings = useMock ? mockService.subscribeToSettings : firebaseService.subscribeToSettings;
+export const updateSettings = useMock ? mockService.updateSettings : firebaseService.updateSettings;
 
 console.log(`[DataService] Using ${useMock ? "MOCK" : "FIREBASE"} service.`);
