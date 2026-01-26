@@ -1,56 +1,81 @@
 # Lev Display - Project Context
 
 ## Project Overview
-**Lev Display** is a digital signage system designed for "Lev Chabad" to display memorial, birthday, and healing dedications. It features a dynamic slideshow that rotates through dedications, smart scheduling based on Gregorian/Hebrew dates, and an admin interface for content management.
+**Lev Display** is a dynamic digital signage system developed for "Lev Chabad". Its primary function is to display memorial, birthday, and healing dedications on a tablet or screen. The application is built as a Progressive Web App (PWA) to ensure reliability and offline capabilities.
 
 ## Tech Stack
--   **Frontend**: React 19
--   **Build Tool**: Vite 7
--   **Styling**: Tailwind CSS 4
--   **Icons**: Lucide-React
--   **Backend**: Configurable Service Layer (Firebase vs. LocalStorage Mock)
--   **Testing**: Vitest + React Testing Library
--   **Date Logic**: `@hebcal/core` for Hebrew dates
+-   **Frontend:** React 19
+-   **Build Tool:** Vite 7
+-   **Styling:** Tailwind CSS 4 (@tailwindcss/vite)
+-   **Routing:** React Router 7
+-   **Icons:** Lucide-React
+-   **State Management:** React Hooks + Service Layer pattern
+-   **Backend:** Configurable (Firebase Firestore/Storage OR LocalStorage Mock)
+-   **Date Logic:** `@hebcal/core` for Hebrew calendar integration
+-   **PWA:** `vite-plugin-pwa` for offline support and installation
 
-## Architecture
-The application is structured around a **Service Layer Pattern** to decouple the UI from the data source.
+## Architecture & Design Patterns
+The application follows a **Service Layer Pattern** to decouple the UI from the underlying data source.
 
-### Service Layer (`src/services/`)
--   **`dataService.js`**: The main entry point. It exports unified functions (`subscribeToItems`, `addItem`, etc.) that delegate to either `mockService.js` or `firebaseService.js` based on the `VITE_USE_MOCK` environment variable.
--   **`mockService.js`**: Uses `localStorage` to simulate a database. Ideal for offline development.
--   **`firebaseService.js`**: Connects to Firebase Firestore and Storage for production data.
+### 1. Service Layer (`src/services/`)
+-   **`dataService.js`**: The abstraction layer. It exports unified functions (`subscribeToItems`, `addItem`, etc.) and delegates execution to the appropriate concrete service based on the `VITE_USE_MOCK` environment variable.
+-   **`mockService.js`**: A local-only implementation using `localStorage`. Images are stored as Base64 strings.
+-   **`firebaseService.js`**: The production implementation connecting to Firebase Firestore (database) and Storage (images).
 
-### Routing (`src/App.jsx`)
--   `/`: **DisplayPage** - The main public slideshow for the tablet/screen.
--   `/login`: **LoginPage** - Admin authentication.
--   `/admin`: **AdminPage** - Protected route for managing slides (CRUD operations).
+### 2. Routing (`src/App.jsx`)
+-   `/`: **DisplayPage** - The main public slideshow interface.
+-   `/login`: **LoginPage** - Admin authentication page.
+-   `/admin`: **AdminPage** - Protected route for content management (CRUD).
 
-### Key Directories
--   `src/lib/`: External library initialization (e.g., `firebase.js`).
--   `src/utils/`: Helper functions (e.g., `hebrewDate.js` for date conversion).
--   `src/constants.js`: Global constants and mock data configuration.
--   `src/tests/`: Global test setup (e.g., `setup.js`).
+### 3. Component Structure (`src/components/`)
+-   **`SlideCard.jsx`**: The core component for rendering individual slides.
+-   **`AdminItemForm.jsx`**: Form for adding/editing slides, including logic for Hebrew date conversion.
+-   **`AdminItemRow.jsx`**: A row component for the admin list view.
+-   **`PreviewModal.jsx`**: Allows admins to preview a slide exactly as it will appear on the display.
 
-## Configuration
-The application behavior is controlled by `.env` variables.
+## Configuration (.env)
+The application behavior is controlled by environment variables.
 
-### Environment Variables
-| Variable | Description | Default/Example |
+| Variable | Description | Default |
 | :--- | :--- | :--- |
-| `VITE_USE_MOCK` | Toggle between Mock and Firebase services | `true` or `false` |
-| `VITE_FIREBASE_*` | Firebase configuration keys (only needed if `VITE_USE_MOCK=false`) | See `README.md` |
+| `VITE_USE_MOCK` | Toggle between Mock (true) and Firebase (false) services. | `true` |
+| `VITE_FIREBASE_*` | API keys and config for Firebase (required if `VITE_USE_MOCK=false`). | N/A |
 
 ## Key Commands
-| Command | Description |
-| :--- | :--- |
-| `npm run dev` | Start the local development server |
-| `npm run build` | Build the project for production |
-| `npm run preview` | Preview the production build locally |
-| `npm run test` | Run unit tests using Vitest |
-| `npm run lint` | Run ESLint |
 
-## Development Guidelines
-1.  **Mock Mode**: Default to `VITE_USE_MOCK=true` for rapid UI development without needing Firebase credentials.
-2.  **Styling**: Use Tailwind CSS utility classes.
-3.  **Testing**: Write tests for new logic, especially utility functions and critical components. Run `npm run test` to verify.
-4.  **Icons**: Use `lucide-react` for all icons.
+### Development
+```bash
+# Start local development server
+npm run dev
+```
+
+### Production
+```bash
+# Build the project
+npm run build
+
+# Preview the production build locally
+npm run preview
+```
+
+### Quality Control
+```bash
+# Run ESLint
+npm run lint
+```
+
+## Development Conventions
+-   **Styling:** Use Tailwind CSS utility classes directly in JSX.
+-   **Icons:** Always use `lucide-react` for consistency.
+-   **Data Access:** NEVER import `firebaseService` or `mockService` directly in components. Always use `dataService`.
+-   **Mock Mode:** Use `VITE_USE_MOCK=true` for rapid UI development without needing Firebase credentials.
+-   **Hebrew Dates:** Use `src/utils/hebrewDate.js` for all conversions to ensure consistency.
+
+## Directory Structure
+-   `src/assets/`: Static assets (logos, placeholders).
+-   `src/components/`: Reusable UI components.
+-   `src/lib/`: External library initializations (e.g., `firebase.js`).
+-   `src/pages/`: Top-level route components.
+-   `src/services/`: Data access layer.
+-   `src/utils/`: Helper functions (dates, storage, logic).
+-   `src/constants.js`: Global constants and mock data.
