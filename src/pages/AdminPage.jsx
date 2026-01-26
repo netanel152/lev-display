@@ -136,8 +136,8 @@ const AdminPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-32 font-admin">
-      <header className="bg-lev-burgundy text-white p-4 flex justify-between items-center sticky top-0 z-10 shadow-md">
+    <div className="min-h-screen bg-gray-50 font-admin flex flex-col">
+      <header className="bg-lev-burgundy text-white p-4 flex justify-between items-center sticky top-0 z-50 shadow-md">
         <h1 className="text-lg md:text-xl font-bold flex items-center gap-2">
           <Heart size={20} fill="white" /> ניהול לב חב"ד
         </h1>
@@ -148,51 +148,56 @@ const AdminPage = () => {
         </div>
       </header>
 
-      <div className="pt-6 p-4 max-w-2xl mx-auto space-y-4">
-        {/* הגדרות תצוגה */}
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-          <h2 className="font-bold text-lg text-gray-900 mb-3 border-b pb-2">הגדרות תצוגה</h2>
-          <div className="flex items-center gap-4">
-            <label className="text-gray-700 font-medium whitespace-nowrap">זמן הצגת שקופית:</label>
-            <input
-              type="range"
-              min="3"
-              max="20"
-              value={slideDuration}
-              onChange={handleDurationChange}
-              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-lev-blue"
-            />
-            <span className="w-12 text-center font-bold text-lev-blue bg-blue-50 py-1 rounded-md">{slideDuration} ש'</span>
+      <main className="flex-1 overflow-y-auto">
+        <div className="pt-6 px-4 pb-40 max-w-2xl mx-auto space-y-4">
+          {/* הגדרות תצוגה */}
+          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+            <h2 className="font-bold text-lg text-gray-900 mb-3 border-b pb-2">הגדרות תצוגה</h2>
+            <div className="flex items-center gap-4">
+              <label className="text-gray-700 font-medium whitespace-nowrap">זמן הצגת שקופית:</label>
+              <input
+                type="range"
+                min="3"
+                max="20"
+                value={slideDuration}
+                onChange={handleDurationChange}
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-lev-blue"
+              />
+              <span className="w-12 text-center font-bold text-lev-blue bg-blue-50 py-1 rounded-md">{slideDuration} ש'</span>
+            </div>
+          </div>
+
+          {/* רשימת פריטים */}
+          <div className="space-y-4">
+            {items.map((item) => (
+              <div key={item.id} className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center">
+                <div className="flex gap-4 items-center overflow-hidden">
+                  {item.donorLogo && (
+                    <div className="w-12 h-12 bg-gray-50 rounded-lg border flex items-center justify-center overflow-hidden shrink-0">
+                      <img src={item.donorLogo} alt="Logo" className="max-w-full max-h-full object-contain" />
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2 mb-1">
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${item.type === "memorial" ? "bg-orange-100 text-orange-700" : item.type === "birthday" ? "bg-pink-100 text-pink-700" : "bg-green-100 text-green-700"}`}>
+                        {item.type === "memorial" ? "זיכרון" : item.type === "birthday" ? "יום הולדת" : "רפואה"}
+                      </span>
+                      {item.hebrewDate && <span className="text-xs text-gray-600 font-medium">{item.hebrewDate}</span>}
+                    </div>
+                    <h3 className="font-bold text-lg text-gray-900 truncate">{item.mainName}</h3>
+                    <p className="text-gray-700 text-sm truncate">{item.subText}</p>
+                    {item.donorName && <p className="text-xs text-blue-700 mt-1 font-medium truncate">תורם: {item.donorName}</p>}
+                  </div>
+                </div>
+                <div className="flex gap-2 shrink-0">
+                  <button onClick={() => handleEdit(item)} className="text-blue-500 p-2 hover:bg-blue-50 rounded-full"><Pencil size={20} /></button>
+                  <button onClick={() => handleDelete(item.id)} className="text-red-500 p-2 hover:bg-red-50 rounded-full"><Trash2 size={20} /></button>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
-
-        {items.map((item) => (
-          <div key={item.id} className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center">
-            <div className="flex gap-4 items-center overflow-hidden">
-              {item.donorLogo && (
-                <div className="w-12 h-12 bg-gray-50 rounded-lg border flex items-center justify-center overflow-hidden shrink-0">
-                  <img src={item.donorLogo} alt="Logo" className="max-w-full max-h-full object-contain" />
-                </div>
-              )}
-              <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-2 mb-1">
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${item.type === "memorial" ? "bg-orange-100 text-orange-700" : item.type === "birthday" ? "bg-pink-100 text-pink-700" : "bg-green-100 text-green-700"}`}>
-                    {item.type === "memorial" ? "זיכרון" : item.type === "birthday" ? "יום הולדת" : "רפואה"}
-                  </span>
-                  {item.hebrewDate && <span className="text-xs text-gray-600 font-medium">{item.hebrewDate}</span>}
-                </div>
-                <h3 className="font-bold text-lg text-gray-900 truncate">{item.mainName}</h3>
-                <p className="text-gray-700 text-sm truncate">{item.subText}</p>
-                {item.donorName && <p className="text-xs text-blue-700 mt-1 font-medium truncate">תורם: {item.donorName}</p>}
-              </div>
-            </div>
-            <div className="flex gap-2 shrink-0">
-              <button onClick={() => handleEdit(item)} className="text-blue-500 p-2 hover:bg-blue-50 rounded-full"><Pencil size={20} /></button>
-              <button onClick={() => handleDelete(item.id)} className="text-red-500 p-2 hover:bg-red-50 rounded-full"><Trash2 size={20} /></button>
-            </div>
-          </div>
-        ))}
-      </div>
+      </main>
 
       <button onClick={() => setIsFormOpen(true)} className="fixed bottom-6 left-6 bg-lev-blue text-white p-4 rounded-full shadow-lg hover:bg-blue-700 transition z-40"><Plus size={28} /></button>
 

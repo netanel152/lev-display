@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { getTodayHebrewDate, getCurrentHoliday } from "../utils/hebrewDate";
 import { subscribeToItems, subscribeToSettings } from "../services/dataService";
 import { EMPTY_SLIDE_DATA, DEFAULT_SLIDE_DURATION, FADE_DURATION, THEME_COLORS } from "../constants";
+import logo from "../assets/logo.png";
 
 const getFontSize = (text) => {
   if (!text) return "text-4xl md:text-8xl lg:text-[10rem]";
@@ -143,25 +144,28 @@ const DisplayPage = () => {
 
   // Slide rotation and data refresh logic
   useEffect(() => {
+    // If no items or just one item, we don't need rotation/fading
+    if (todayItems.length <= 1) {
+      setFade(true); // Ensure it's visible
+      return;
+    }
+
     const interval = setInterval(() => {
       setFade(false);
 
       setTimeout(() => {
-        if (todayItems.length > 0) {
-          setIndex((prev) => {
-            const nextIndex = (prev + 1) % todayItems.length;
-            console.log(`[DisplayPage] Rotating slide to index ${nextIndex}`);
-            return nextIndex;
-          });
-        }
-
+        setIndex((prev) => {
+          const nextIndex = (prev + 1) % todayItems.length;
+          console.log(`[DisplayPage] Rotating slide to index ${nextIndex}`);
+          return nextIndex;
+        });
         setFade(true);
       }, FADE_DURATION);
 
     }, slideDuration);
 
     return () => clearInterval(interval);
-  }, [items, todayItems.length, slideDuration]);
+  }, [todayItems.length, slideDuration]);
 
   useEffect(() => {
     const dateInterval = setInterval(() => {
@@ -255,15 +259,7 @@ const DisplayPage = () => {
       >
         {/* לוגו לב חב"ד */}
         <div className="flex flex-col items-center mt-2 md:mt-4 shrink-0">
-          <div className="flex items-center gap-2 md:gap-3 text-lev-burgundy">
-            <Heart fill="#7A1429" className="w-10 h-10 md:w-[80px] md:h-[80px]" />
-            <h1 className="text-3xl md:text-8xl font-black tracking-tighter">
-              לב חב"ד
-            </h1>
-          </div>
-          <p className="text-lev-burgundy text-sm md:text-3xl font-bold mt-1">
-            הכתובת שלך במרכז הרפואי
-          </p>
+          <img src={logo} alt="לב חב'ד" className="h-16 md:h-40 w-auto object-contain" />
         </div>
 
         {/* תוכן ההקדשה */}
