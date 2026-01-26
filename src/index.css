@@ -36,6 +36,5 @@ body {
   direction: rtl;
   background-color: var(--color-lev-yellow);
   font-family: var(--font-sans);
-  overflow: hidden;
   margin: 0;
 }
