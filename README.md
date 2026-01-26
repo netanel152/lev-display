@@ -1,6 +1,6 @@
 # Lev Display - Digital Signage System
 
-A dynamic digital display system built for "Lev Chabad" to show memorial, birthday, and healing dedications. This project uses **React 19**, **Vite**, and **Tailwind CSS 4**, featuring a flexible architecture that supports both local mock data and a live Firebase backend.
+A dynamic digital display system built for "Lev Chabad" to show memorial, birthday, and healing dedications. This project uses **React 19**, **Vite 7**, and **Tailwind CSS 4**, featuring a flexible architecture that supports both local mock data and a live Firebase backend.
 
 ## 🚀 Features
 
@@ -8,16 +8,20 @@ A dynamic digital display system built for "Lev Chabad" to show memorial, birthd
 -   **Smart Scheduling**: Shows specific slides based on Gregorian or Hebrew dates.
 -   **Themes**: Distinct visual themes for Memorial (Candle), Birthday (Balloons), and Healing (Pulse).
 -   **Admin Interface**: Password-protected area to add, edit, and delete slides.
+-   **Live Preview**: Instantly preview how a dedication will look on the display before saving.
 -   **Service Layer Pattern**: Seamlessly switch between local storage (Mock) and Firebase Firestore/Storage.
--   **Hebrew Date Integration**: Displays the current Hebrew date automatically.
+-   **Hebrew Date Integration**: Displays the current Hebrew date automatically using `@hebcal/core`.
+-   **Responsive Layout**: Optimized for fixed screens with vertical centering and safe scrolling.
 -   **Wake Lock Support**: Prevents the screen from sleeping while in display mode.
 
 ## 🛠️ Tech Stack
 
 -   **Framework**: React 19
+-   **Routing**: React Router 7
 -   **Build Tool**: Vite 7
 -   **Styling**: Tailwind CSS 4
 -   **Icons**: Lucide-React
+-   **Notifications**: React Hot Toast
 -   **Backend**: Firebase (Firestore & Storage) or LocalStorage (Mock)
 
 ## ⚙️ Configuration & Backend
@@ -25,7 +29,7 @@ A dynamic digital display system built for "Lev Chabad" to show memorial, birthd
 This project implements a **Service Layer** that allows you to toggle between a local development mode and a production-ready Firebase backend using environment variables.
 
 ### 1. Mock Mode (Default)
-Uses `localStorage` to persist data in the browser. Images are converted to Base64. Ideal for local development without internet or backend setup.
+Uses `localStorage` to persist data in the browser. Images are stored as Base64 strings. Ideal for local development or offline use.
 
 **Setup**:
 Ensure your `.env` file contains:
@@ -76,21 +80,12 @@ VITE_FIREBASE_APP_ID=your_app_id
     npm run build
     ```
 
-## 🧪 Testing
-
-This project uses **Vitest** for unit and integration testing.
-
-To run the tests:
-```bash
-npm test
-```
-
 ## 📱 Progressive Web App (PWA)
 
-This application is configured as a PWA, meaning it can be installed on supported devices and work offline (depending on caching strategies).
+This application is configured as a PWA, meaning it can be installed on supported devices and work offline.
 
--   **Manifest**: Configured in `vite.config.js` with name "Lev Display".
--   **Service Worker**: Auto-updates by default.
+-   **Manifest**: Configured in `vite.config.js` with the name "Lev Display".
+-   **Service Worker**: Uses `vite-plugin-pwa` with `autoUpdate` strategy.
 
 ## 🧹 Linting
 
@@ -104,17 +99,15 @@ npm run lint
 
 ```
 src/
+├── assets/             # Static assets (logos, icons)
+├── components/         # Reusable UI components (Modals, Cards, Forms)
+├── lib/                # Library initializations (Firebase)
+├── pages/              # Main route pages (Display, Admin, Login)
 ├── services/           # Data Service Layer
 │   ├── dataService.js     # Switcher (Mock <-> Firebase)
 │   ├── mockService.js     # LocalStorage implementation
 │   └── firebaseService.js # Firebase implementation
-├── lib/
-│   └── firebase.js     # Firebase initialization
-├── pages/
-│   ├── DisplayPage.jsx # Main slideshow display
-│   ├── AdminPage.jsx   # Management interface
-│   └── LoginPage.jsx   # Admin authentication
-├── utils/
-│   └── hebrewDate.js   # Hebrew date logic
-└── constants.js        # Global configs & Mock Data
+├── utils/              # Helper functions (Hebrew dates, storage, slide logic)
+├── constants.js        # Global configurations & Mock data
+└── App.jsx             # Main application entry and routing
 ```
