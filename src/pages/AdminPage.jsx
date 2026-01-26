@@ -5,6 +5,7 @@ import { toast } from "react-hot-toast";
 import { getHebrewDate } from "../utils/hebrewDate";
 import { subscribeToItems, addItem, updateItem, deleteItem, subscribeToSettings, updateSettings } from "../services/dataService";
 import { STORAGE_KEYS } from "../constants";
+import ConfirmModal from "../components/ConfirmModal";
 
 const AdminPage = () => {
   const navigate = useNavigate();
@@ -12,6 +13,10 @@ const AdminPage = () => {
   const [items, setItems] = useState([]);
   const [imageFile, setImageFile] = useState(null);
   const [slideDuration, setSlideDuration] = useState(5);
+
+  // State for Confirm Modal
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
 
   useEffect(() => {
     const unsubscribeItems = subscribeToItems((newItems) => {
@@ -56,16 +61,24 @@ const AdminPage = () => {
     navigate("/");
   };
 
-  const handleDelete = async (id) => {
-    if (confirm("בטוח למחוק?")) {
-      console.log(`[AdminPage] Deleting item ${id}`);
-      try {
-        await deleteItem(id);
-        toast.error('ההקדשה נמחקה');
-      } catch (error) {
-        console.error("Failed to delete item:", error);
-        toast.error('שגיאה במחיקת הפריט');
-      }
+  const confirmDelete = (id) => {
+    setItemToDelete(id);
+    setIsDeleteModalOpen(true);
+  };
+
+  const executeDelete = async () => {
+    if (!itemToDelete) return;
+    
+    console.log(`[AdminPage] Deleting item ${itemToDelete}`);
+    try {
+      await deleteItem(itemToDelete);
+      toast.error('ההקדשה נמחקה');
+    } catch (error) {
+      console.error("Failed to delete item:", error);
+      toast.error('שגיאה במחיקת הפריט');
+    } finally {
+      setIsDeleteModalOpen(false);
+      setItemToDelete(null);
     }
   };
 
@@ -137,6 +150,17 @@ const AdminPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 font-admin flex flex-col">
+      <ConfirmModal 
+        isOpen={isDeleteModalOpen}
+        title="מחיקת הקדשה"
+        message="האם אתה בטוח שברצונך למחוק את ההקדשה הזו? פעולה זו אינה ניתנת לביטול."
+        onConfirm={executeDelete}
+        onCancel={() => setIsDeleteModalOpen(false)}
+        confirmText="מחק"
+        cancelText="ביטול"
+        type="danger"
+      />
+
       <header className="bg-lev-burgundy text-white p-4 flex justify-between items-center sticky top-0 z-50 shadow-md">
         <h1 className="text-lg md:text-xl font-bold flex items-center gap-2">
           <Heart size={20} fill="white" /> ניהול לב חב"ד
@@ -191,7 +215,7 @@ const AdminPage = () => {
                 </div>
                 <div className="flex gap-2 shrink-0">
                   <button onClick={() => handleEdit(item)} className="text-blue-500 p-2 hover:bg-blue-50 rounded-full"><Pencil size={20} /></button>
-                  <button onClick={() => handleDelete(item.id)} className="text-red-500 p-2 hover:bg-red-50 rounded-full"><Trash2 size={20} /></button>
+                  <button onClick={() => confirmDelete(item.id)} className="text-red-500 p-2 hover:bg-red-50 rounded-full"><Trash2 size={20} /></button>
                 </div>
               </div>
             ))}
@@ -202,7 +226,12 @@ const AdminPage = () => {
       <button onClick={() => setIsFormOpen(true)} className="fixed bottom-6 left-6 bg-lev-blue text-white p-4 rounded-full shadow-lg hover:bg-blue-700 transition z-40"><Plus size={28} /></button>
 
       {isFormOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+        <div 
+          className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4 animate-fade-in"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) closeForm();
+          }}
+        >
           <div className="bg-white w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl p-6 shadow-2xl animate-fade-in max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold mb-4">{editId ? "עריכת הקדשה" : "הוספת הקדשה חדשה"}</h2>
             <form onSubmit={handleSave} className="space-y-4">

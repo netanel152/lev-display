@@ -17,7 +17,19 @@ const ProtectedRoute = ({ children }) => {
 function App() {
   return (
     <BrowserRouter>
-      <Toaster position="top-center" />
+      <Toaster 
+        position="top-center" 
+        toastOptions={{
+          style: {
+            fontFamily: '"Assistant", "Rubik", sans-serif',
+            fontWeight: '700',
+            fontSize: '1.1rem',
+            padding: '16px 24px',
+            borderRadius: '12px',
+            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+          },
+        }}
+      />
       <Routes>
         {/* נתיב ראשי - מסך התצוגה של הטאבלט */}
         <Route path="/" element={<DisplayPage />} />

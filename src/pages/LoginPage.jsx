@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Heart, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-hot-toast";
 import { STORAGE_KEYS } from "../constants";
 
 const LoginPage = () => {
@@ -16,7 +17,7 @@ const LoginPage = () => {
       navigate("/admin");
     } else {
       console.warn("[LoginPage] Login failed: Incorrect password");
-      alert("סיסמה שגויה");
+      toast.error("סיסמה שגויה");
     }
   };
 

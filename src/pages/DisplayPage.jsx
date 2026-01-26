@@ -252,7 +252,7 @@ const DisplayPage = () => {
         <div className="absolute left-1/2 -translate-x-1/2 -top-4 md:-top-6 w-0 h-0 border-l-[20px] md:border-l-[30px] border-l-transparent border-r-[20px] md:border-r-[30px] border-r-transparent border-b-[20px] md:border-b-[30px] border-b-lev-blue"></div>
       </div>
 
-      {/* הכרטיס הלבן המרכזי - עם אנימציה משופרת ופס התקדמות */}
+      {/* הכרטיס הלבן המרכזי - עם אנימציה  */}
       <div
         key={data.id}
         className={`relative z-10 bg-white w-[90%] md:w-full max-w-6xl rounded-[2rem] md:rounded-[3rem] shadow-2xl shadow-lev-burgundy/10 flex flex-col items-center text-center p-4 md:p-10 transition-all duration-700 ease-in-out transform ${fade ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-4'}`}
