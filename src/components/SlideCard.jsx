@@ -1,4 +1,4 @@
-import logo from "../assets/logo.png";
+import logo from "../assets/original-logo.jpg";
 import { getFontSize, getTheme } from "../utils/slideUtils";
 
 const SlideCard = ({ data, fade = true }) => {
