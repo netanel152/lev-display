@@ -6,12 +6,14 @@ import {
   deleteDoc, 
   doc, 
   query,
-  setDoc
+  setDoc,
+  getDoc
 } from "firebase/firestore";
 import { 
   ref, 
   uploadBytes, 
-  getDownloadURL 
+  getDownloadURL,
+  deleteObject
 } from "firebase/storage";
 import { db, storage } from "../lib/firebase";
 
@@ -83,7 +85,24 @@ export const updateItem = async (id, data, imageFile) => {
 
 export const deleteItem = async (id) => {
   try {
-    await deleteDoc(doc(db, COLLECTION_NAME, id));
+    const docRef = doc(db, COLLECTION_NAME, id);
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      if (data.donorLogo) {
+        try {
+          // Create a reference to the file to delete
+          const imageRef = ref(storage, data.donorLogo);
+          await deleteObject(imageRef);
+        } catch (storageError) {
+          console.error("Error deleting image from storage:", storageError);
+          // Continue to delete doc even if image delete fails (orphan image is better than zombie doc)
+        }
+      }
+    }
+
+    await deleteDoc(docRef);
     return true;
   } catch (error) {
     console.error("Error deleting firebase item:", error);

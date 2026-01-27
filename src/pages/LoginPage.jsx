@@ -2,22 +2,27 @@ import { useState } from "react";
 import { Heart, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
-import { STORAGE_KEYS } from "../constants";
+import { login } from "../services/authService";
 
 const LoginPage = () => {
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    // בדיקה פשוטה כרגע - בהמשך נחבר ל-Firebase Auth
-    if (password === "123456") {
+    setIsLoading(true);
+    
+    try {
+      await login(password);
       console.log("[LoginPage] Login successful");
-      localStorage.setItem(STORAGE_KEYS.IS_ADMIN, "true"); // שמירת מצב התחברות
+      toast.success("התחברת בהצלחה");
       navigate("/admin");
-    } else {
-      console.warn("[LoginPage] Login failed: Incorrect password");
+    } catch (error) {
+      console.warn("[LoginPage] Login failed:", error);
       toast.error("סיסמה שגויה");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -40,13 +45,15 @@ const LoginPage = () => {
               className="w-full p-3 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lev-blue outline-none text-gray-900 placeholder:text-gray-500 font-medium min-h-[44px]"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              disabled={isLoading}
             />
           </div>
           <button
             type="submit"
-            className="w-full bg-lev-blue text-white py-3 rounded-lg font-bold hover:bg-blue-800 transition min-h-[44px]"
+            className="w-full bg-lev-blue text-white py-3 rounded-lg font-bold hover:bg-blue-800 transition min-h-[44px] disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={isLoading}
           >
-            התחבר
+            {isLoading ? "מתחבר..." : "התחבר"}
           </button>
         </form>
       </div>
