@@ -3,6 +3,12 @@ import { getFontSize, getTheme } from "../utils/slideUtils";
 
 const SlideCard = ({ data, fade = true }) => {
   const theme = getTheme(data.type, data.mainName);
+  const isSuccess = data.type === 'success';
+
+  // Handle Title Prefix for Success
+  const displayTitle = isSuccess && data.title && !data.title.includes('להצלחת')
+    ? `להצלחת ${data.title}`
+    : data.title;
 
   return (
     <div
@@ -16,7 +22,7 @@ const SlideCard = ({ data, fade = true }) => {
         <h2 className="text-lg md:text-5xl font-bold text-lev-burgundy/90">
           {data.footerText}
           <div className={`text-base md:text-4xl mt-1 md:mt-3 font-normal ${theme.color}`}>
-            {data.title}
+            {displayTitle}
           </div>
         </h2>
 

@@ -20,6 +20,7 @@ import { db, storage } from "../lib/firebase";
 const COLLECTION_NAME = "displayItems";
 
 export const subscribeToItems = (callback) => {
+  console.log(`[FirebaseService] Subscribing to collection: ${COLLECTION_NAME}`);
   const q = query(collection(db, COLLECTION_NAME));
   
   const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -27,9 +28,10 @@ export const subscribeToItems = (callback) => {
       id: doc.id,
       ...doc.data()
     }));
+    console.log(`[FirebaseService] Received ${items.length} items from ${COLLECTION_NAME}`);
     callback(items);
   }, (error) => {
-    console.error("Error fetching firebase items:", error);
+    console.error(`[FirebaseService] Error subscribing to ${COLLECTION_NAME}:`, error);
   });
 
   return unsubscribe;
@@ -37,12 +39,21 @@ export const subscribeToItems = (callback) => {
 
 const uploadImage = async (file) => {
   if (!file) return null;
-  const storageRef = ref(storage, `images/${Date.now()}_${file.name}`);
-  await uploadBytes(storageRef, file);
-  return await getDownloadURL(storageRef);
+  console.log(`[FirebaseService] Uploading image: ${file.name} (${file.size} bytes)`);
+  try {
+    const storageRef = ref(storage, `images/${Date.now()}_${file.name}`);
+    await uploadBytes(storageRef, file);
+    const url = await getDownloadURL(storageRef);
+    console.log(`[FirebaseService] Image uploaded successfully. URL: ${url}`);
+    return url;
+  } catch (error) {
+    console.error(`[FirebaseService] Image upload failed:`, error);
+    throw error;
+  }
 };
 
 export const addItem = async (item, imageFile) => {
+  console.log(`[FirebaseService] Adding item:`, item.mainName);
   try {
     let imageUrl = item.donorLogo || "";
 
@@ -54,15 +65,17 @@ export const addItem = async (item, imageFile) => {
       ...item,
       donorLogo: imageUrl
     });
-
+    
+    console.log(`[FirebaseService] Item added successfully. ID: ${docRef.id}`);
     return { id: docRef.id, ...item, donorLogo: imageUrl };
   } catch (error) {
-    console.error("Error adding firebase item:", error);
+    console.error(`[FirebaseService] Error adding item:`, error);
     throw error;
   }
 };
 
 export const updateItem = async (id, data, imageFile) => {
+  console.log(`[FirebaseService] Updating item: ${id}`);
   try {
     let imageUrl = data.donorLogo || "";
 
@@ -76,14 +89,16 @@ export const updateItem = async (id, data, imageFile) => {
       donorLogo: imageUrl
     });
 
+    console.log(`[FirebaseService] Item updated successfully: ${id}`);
     return { id, ...data, donorLogo: imageUrl };
   } catch (error) {
-    console.error("Error updating firebase item:", error);
+    console.error(`[FirebaseService] Error updating item ${id}:`, error);
     throw error;
   }
 };
 
 export const deleteItem = async (id) => {
+  console.log(`[FirebaseService] Deleting item: ${id}`);
   try {
     const docRef = doc(db, COLLECTION_NAME, id);
     const docSnap = await getDoc(docRef);
@@ -92,46 +107,57 @@ export const deleteItem = async (id) => {
       const data = docSnap.data();
       if (data.donorLogo) {
         try {
+          console.log(`[FirebaseService] Attempting to delete associated image: ${data.donorLogo}`);
           // Create a reference to the file to delete
+          // Note: Ref creation from URL can be tricky, typically better to store storage path or handle via URL ref
           const imageRef = ref(storage, data.donorLogo);
           await deleteObject(imageRef);
+          console.log(`[FirebaseService] Associated image deleted.`);
         } catch (storageError) {
-          console.error("Error deleting image from storage:", storageError);
-          // Continue to delete doc even if image delete fails (orphan image is better than zombie doc)
+          console.warn(`[FirebaseService] Warning: Failed to delete image for item ${id}. It may be an external URL or already deleted. Error:`, storageError);
+          // Continue to delete doc even if image delete fails
         }
       }
+    } else {
+      console.warn(`[FirebaseService] Document ${id} not found before delete.`);
     }
 
     await deleteDoc(docRef);
+    console.log(`[FirebaseService] Item deleted successfully: ${id}`);
     return true;
   } catch (error) {
-    console.error("Error deleting firebase item:", error);
+    console.error(`[FirebaseService] Error deleting item ${id}:`, error);
     throw error;
   }
 };
 
 export const subscribeToSettings = (callback) => {
+  console.log(`[FirebaseService] Subscribing to settings.`);
   const docRef = doc(db, "settings", "general");
   const unsubscribe = onSnapshot(docRef, (docSnap) => {
     if (docSnap.exists()) {
-      callback(docSnap.data());
+      const data = docSnap.data();
+      console.log(`[FirebaseService] Settings updated:`, data);
+      callback(data);
     } else {
-      // Default settings if document doesn't exist
+      console.log(`[FirebaseService] No settings found. Using defaults.`);
       callback({ slideDuration: 5000 });
     }
   }, (error) => {
-    console.error("Error fetching settings:", error);
+    console.error(`[FirebaseService] Error fetching settings:`, error);
   });
   return unsubscribe;
 };
 
 export const updateSettings = async (newSettings) => {
+  console.log(`[FirebaseService] Updating settings:`, newSettings);
   try {
     const docRef = doc(db, "settings", "general");
     await setDoc(docRef, newSettings, { merge: true });
+    console.log(`[FirebaseService] Settings saved successfully.`);
     return newSettings;
   } catch (error) {
-    console.error("Error updating settings:", error);
+    console.error(`[FirebaseService] Error updating settings:`, error);
     throw error;
   }
 };

@@ -9,7 +9,7 @@ const ADMIN_EMAIL = "admin@lev.com"; // Hardcoded email for simpler UI
 const mockLogin = async (password) => {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
-      if (password === "123456") {
+      if (password === "segal770") {
         localStorage.setItem(STORAGE_KEYS.IS_ADMIN, "true");
         resolve({ user: { email: ADMIN_EMAIL } });
       } else {

@@ -11,7 +11,7 @@ const ProtectedRoute = ({ children }) => {
   if (!isAdmin) {
       console.log("[ProtectedRoute] Access denied. Redirecting to login.");
   }
-  return isAdmin ? children : <Navigate to="/login" />;
+  return isAdmin ? children : <Navigate to="/" />; // Redirect to root (Login) if not authorized
 };
 
 function App() {
@@ -22,20 +22,24 @@ function App() {
         toastOptions={{
           style: {
             fontFamily: '"Assistant", "Rubik", sans-serif',
-            fontWeight: '700',
-            fontSize: '1.1rem',
+            fontWeight: '600',
+            fontSize: '1rem',
             padding: '16px 24px',
             borderRadius: '12px',
             boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+            direction: 'rtl',
           },
         }}
       />
       <Routes>
-        {/* נתיב ראשי - מסך התצוגה של הטאבלט */}
-        <Route path="/" element={<DisplayPage />} />
+        {/* נתיב ראשי - דף התחברות */}
+        <Route path="/" element={<LoginPage />} />
 
-        {/* נתיב התחברות */}
-        <Route path="/login" element={<LoginPage />} />
+        {/* נתיב תצוגה - מסך הטאבלט/טלוויזיה (פתוח, אך הכניסה הראשית היא דרך הלוגין) */}
+        <Route path="/display" element={<DisplayPage />} />
+
+        {/* תאימות לאחור - אם מישהו מגיע ל /login, נציג לו את דף הבית */}
+        <Route path="/login" element={<Navigate to="/" replace />} />
 
         {/* נתיב ניהול - מוגן בסיסמה */}
         <Route path="/admin" element={

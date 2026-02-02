@@ -1,4 +1,3 @@
-
 export const STORAGE_KEYS = {
   DISPLAY_ITEMS: "displayItems",
   IS_ADMIN: "isAdmin",
@@ -12,6 +11,7 @@ export const THEME_COLORS = {
   MEMORIAL: "text-lev-burgundy",
   BIRTHDAY: "text-pink-600",
   HEALING: "text-green-600",
+  SUCCESS: "text-blue-600", // Added for consistency
 };
 
 export const MOCK_DATA = [
@@ -43,6 +43,16 @@ export const MOCK_DATA = [
     subText: "לרפואה שלמה וקרובה",
     footerText: 'פעילות קפיטריית החסד לב חב"ד',
     donorName: null,
+    donorLogo: null,
+  },
+  {
+    id: 4,
+    type: "success",
+    title: "להצלחת",
+    mainName: "משה בן רבקה",
+    subText: "בכל מעשי ידיו",
+    footerText: 'מברכים, המשפחה',
+    donorName: "משפחת כהן",
     donorLogo: null,
   },
 ];

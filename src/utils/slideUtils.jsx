@@ -24,6 +24,11 @@ export const getTheme = (type, mainName) => {
         icon: <Activity size={iconSize} className={commonClasses} />,
         color: THEME_COLORS.HEALING,
       };
+    case "success":
+      return {
+        icon: <Star size={iconSize} className={commonClasses} />,
+        color: THEME_COLORS.SUCCESS || "text-blue-600",
+      };
     case "holiday":
       if (mainName && mainName.includes("פורים")) {
         return {

@@ -1,18 +1,29 @@
-import { useState } from 'react';
-import { ImageIcon } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ImageIcon, X } from 'lucide-react';
 import PreviewModal from './PreviewModal';
-import { getHebrewDate } from '../utils/hebrewDate';
+import { 
+  HEBREW_DAYS, 
+  HEBREW_MONTHS, 
+  HEBREW_YEARS, 
+  getGregorianFromHebrew 
+} from '../utils/hebrewDate';
 
 const AdminItemForm = ({ onClose, onSave, initialData, isEditing }) => {
   const [showPreview, setShowPreview] = useState(false);
+  
+  // Local state for Hebrew Date Picker
+  const [hDay, setHDay] = useState("");
+  const [hMonth, setHMonth] = useState("");
+  const [hYear, setHYear] = useState("");
+
   const [formData, setFormData] = useState(() => {
     if (initialData) {
       return {
         type: initialData.type || "memorial",
         mainName: initialData.mainName || "",
         subText: initialData.subText || "",
-        date: initialData.date || "",
-        hebrewDate: initialData.hebrewDate || "",
+        date: initialData.date || "", // Gregorian string for sorting
+        hebrewDate: initialData.hebrewDate || "", // Full string
         notes: initialData.notes || "",
         donorName: initialData.donorName || "",
         donorLogo: initialData.donorLogo || "",
@@ -36,14 +47,54 @@ const AdminItemForm = ({ onClose, onSave, initialData, isEditing }) => {
 
   const [imageFile, setImageFile] = useState(null);
 
-  const handleChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
+  // Initialize Hebrew Date picker defaults
+  useEffect(() => {
+    if (isEditing && initialData?.hebrewDate) {
+      // Expected format: "ט' בתשרי תשפ"ה" or similar
+      const parts = initialData.hebrewDate.split(' ');
+      if (parts.length >= 3) {
+        const d = parts[0];
+        let m = parts[1];
+        if (m.startsWith("ב")) m = m.substring(1);
+        const y = parts[parts.length - 1];
 
-  const handleDateChange = (e) => {
-    const newDate = e.target.value;
-    const hebrewDate = getHebrewDate(newDate);
-    setFormData(prev => ({ ...prev, date: newDate, hebrewDate }));
+        if (HEBREW_DAYS.includes(d)) setHDay(d);
+        const foundMonth = HEBREW_MONTHS.find(month => month === m || m.includes(month));
+        if (foundMonth) setHMonth(foundMonth);
+        
+        // Find matching year including potentially slightly different quote chars
+        const foundYear = HEBREW_YEARS.find(year => year === y || year.replace(/["'״]/g, '') === y.replace(/["'״]/g, ''));
+        if (foundYear) setHYear(foundYear);
+      }
+    } else if (!isEditing) {
+        // Defaults for new item
+        setHYear(HEBREW_YEARS[0]); // Current/Latest year
+    }
+  }, [isEditing, initialData]);
+
+  // Update formData whenever date parts change
+  useEffect(() => {
+    if (hDay && hMonth && hYear) {
+      const fullHebrewString = `${hDay} ב${hMonth} ${hYear}`;
+      const gregDate = getGregorianFromHebrew(hDay, hMonth, hYear);
+      const gregDateString = gregDate.toISOString().split('T')[0]; // YYYY-MM-DD
+
+      setFormData(prev => ({
+        ...prev,
+        hebrewDate: fullHebrewString,
+        date: gregDateString
+      }));
+    }
+  }, [hDay, hMonth, hYear]);
+
+  const handleChange = (field, value) => {
+    setFormData(prev => {
+      const newData = { ...prev, [field]: value };
+      if (field === 'type' && value === 'success' && !prev.title) {
+        newData.title = "להצלחת";
+      }
+      return newData;
+    });
   };
 
   const handleFileChange = (e) => {
@@ -72,156 +123,215 @@ const AdminItemForm = ({ onClose, onSave, initialData, isEditing }) => {
       />
 
       <div
-        className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4 animate-fade-in"
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200"
         onClick={(e) => {
           if (e.target === e.currentTarget) onClose();
         }}
+        dir="rtl"
       >
-        <div className="bg-white w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl p-6 shadow-2xl animate-fade-in max-h-[90vh] overflow-y-auto">
-          <h2 className="text-xl font-bold mb-4">{isEditing ? "עריכת הקדשה" : "הוספת הקדשה חדשה"}</h2>
-          <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="bg-white w-full max-w-4xl rounded-2xl shadow-2xl flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-300">
+          
+          {/* Header */}
+          <div className="flex justify-between items-center p-6 border-b shrink-0">
+             <h2 className="text-2xl font-bold text-gray-900">{isEditing ? "עריכת הקדשה" : "הוספת הקדשה חדשה"}</h2>
+             <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition p-1 hover:bg-gray-100 rounded-lg">
+               <X size={24} />
+             </button>
+          </div>
 
-            <div>
-              <label className="block text-sm text-gray-800 font-medium mb-1">סוג אירוע</label>
-              <select
-                className="w-full p-3 bg-gray-50 rounded-lg border text-gray-900"
-                value={formData.type}
-                onChange={(e) => handleChange("type", e.target.value)}
-              >
-                <option value="memorial">לזיכרון (נר)</option>
-                <option value="birthday">יום הולדת (בלונים)</option>
-                <option value="healing">לרפואה (דופק)</option>
-              </select>
-            </div>
+          {/* Scrollable Content */}
+          <div className="overflow-y-auto p-6 md:p-8 custom-scrollbar">
+            <form id="item-form" onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-8">
+               
+               {/* Left Column (Desktop) - Details */}
+               <div className="space-y-6">
+                 <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">סוג אירוע</label>
+                    <select
+                      className="w-full p-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-lev-blue/20 focus:border-lev-blue outline-none transition-all"
+                      value={formData.type}
+                      onChange={(e) => handleChange("type", e.target.value)}
+                    >
+                      <option value="memorial">לזיכרון (נר)</option>
+                      <option value="birthday">יום הולדת (בלונים)</option>
+                      <option value="healing">לרפואה (דופק)</option>
+                      <option value="success">להצלחה (כוכב)</option>
+                    </select>
+                 </div>
 
-            {/* Top Texts */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              <div>
-                <label className="block text-sm text-gray-800 font-medium mb-1">כותרת עליונה</label>
-                <input
-                  className="w-full p-3 bg-gray-50 rounded-lg border text-gray-900 placeholder:text-gray-400"
-                  value={formData.footerText}
-                  onChange={(e) => handleChange("footerText", e.target.value)}
-                  placeholder="למשל: פעילות קפיטריית..."
-                />
-              </div>
-              <div>
-                <label className="block text-sm text-gray-800 font-medium mb-1">כותרת ההקדשה</label>
-                <input
-                  className="w-full p-3 bg-gray-50 rounded-lg border text-gray-900 placeholder:text-gray-400"
-                  value={formData.title}
-                  onChange={(e) => handleChange("title", e.target.value)}
-                  placeholder="למשל: מוקדשת ל..."
-                />
-              </div>
-            </div>
-
-            {/* Dates */}
-            <div>
-              <label className="block text-sm text-gray-800 font-medium mb-1">תאריך</label>
-              <div className="flex gap-2">
-                <input
-                  type="date"
-                  className="w-1/3 p-3 bg-gray-50 rounded-lg border text-gray-900"
-                  value={formData.date}
-                  onChange={handleDateChange}
-                />
-                <input
-                  placeholder="עברי"
-                  className="w-2/3 p-3 bg-gray-50 rounded-lg border text-lev-blue font-medium placeholder:text-gray-400"
-                  value={formData.hebrewDate}
-                  onChange={(e) => handleChange("hebrewDate", e.target.value)}
-                />
-              </div>
-            </div>
-
-            {/* Name Details */}
-            <div>
-              <label className="block text-sm text-gray-800 font-medium mb-1">שם מלא</label>
-              <input
-                required
-                className="w-full p-3 bg-gray-50 rounded-lg border text-gray-900"
-                value={formData.mainName}
-                onChange={(e) => handleChange("mainName", e.target.value)}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm text-gray-800 font-medium mb-1">טקסט נוסף (ז"ל / שתחי')</label>
-              <input
-                className="w-full p-3 bg-gray-50 rounded-lg border text-gray-900"
-                value={formData.subText}
-                onChange={(e) => handleChange("subText", e.target.value)}
-              />
-            </div>
-
-            {/* Donor Details */}
-            <div className="border-t pt-4 mt-4">
-              <p className="text-sm font-bold text-gray-800 mb-2">פרטי תורם (אופציונלי)</p>
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-xs text-gray-600 font-medium mb-1">שם התורם</label>
-                  <input
-                    className="w-full p-3 bg-gray-50 rounded-lg border text-gray-900 placeholder:text-gray-400"
-                    value={formData.donorName}
-                    onChange={(e) => handleChange("donorName", e.target.value)}
-                    placeholder="למשל: משפחת כהן"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-600 font-medium mb-1 flex items-center gap-1">
-                    <ImageIcon size={12} /> לוגו תורם (URL או העלאה)
-                  </label>
-
-                  {/* URL Input */}
-                  <input
-                    className="w-full p-3 bg-gray-50 rounded-lg border text-left ltr mb-2 text-gray-900 placeholder:text-gray-400"
-                    value={formData.donorLogo}
-                    onChange={(e) => handleChange("donorLogo", e.target.value)}
-                    placeholder="https://..."
-                  />
-
-                  {/* File Upload */}
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <label className="cursor-pointer bg-gray-100 hover:bg-gray-200 text-gray-600 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition w-full sm:w-auto justify-center">
-                      <ImageIcon size={16} />
-                      העלה לוגו
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={handleFileChange}
-                      />
-                    </label>
-                    {formData.donorLogo && (
-                      <div className="text-xs text-green-600 font-bold">
-                        לוגו נבחר!
+                 {/* Date Picker */}
+                 <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                    <label className="block text-sm font-bold text-gray-700 mb-3">תאריך האירוע (עברי)</label>
+                    <div className="flex gap-3">
+                      <div className="w-1/4">
+                        <select 
+                          className="w-full p-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-lev-blue/20 outline-none text-center"
+                          value={hDay}
+                          onChange={(e) => setHDay(e.target.value)}
+                          required
+                        >
+                          <option value="">יום</option>
+                          {HEBREW_DAYS.map(d => <option key={d} value={d}>{d}</option>)}
+                        </select>
                       </div>
-                    )}
-                  </div>
-
-                  {/* Preview */}
-                  {formData.donorLogo && (
-                    <div className="mt-2 p-2 border rounded-lg bg-white inline-block">
-                      <img src={formData.donorLogo} alt="Preview" className="h-12 w-auto object-contain" />
+                      <div className="w-1/3">
+                        <select 
+                          className="w-full p-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-lev-blue/20 outline-none text-center"
+                          value={hMonth}
+                          onChange={(e) => setHMonth(e.target.value)}
+                          required
+                        >
+                          <option value="">חודש</option>
+                          {HEBREW_MONTHS.map(m => <option key={m} value={m}>{m}</option>)}
+                        </select>
+                      </div>
+                      <div className="flex-1">
+                        <select 
+                          className="w-full p-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-lev-blue/20 outline-none text-center"
+                          value={hYear}
+                          onChange={(e) => setHYear(e.target.value)}
+                          required
+                        >
+                          <option value="">שנה</option>
+                          {HEBREW_YEARS.map(y => <option key={y} value={y}>{y}</option>)}
+                        </select>
+                      </div>
                     </div>
-                  )}
-                </div>
-              </div>
-            </div>
+                    {formData.hebrewDate && (
+                      <p className="text-sm text-lev-blue font-medium mt-3 text-center bg-blue-50 py-1 rounded">
+                        {formData.hebrewDate}
+                      </p>
+                    )}
+                 </div>
 
-            <div className="flex gap-3 mt-6">
-              <button
+                 <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-2">שם מלא (להצגה בגדול)</label>
+                      <input
+                        required
+                        className="w-full p-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-lev-blue/20 focus:border-lev-blue outline-none transition-all placeholder:text-gray-400"
+                        value={formData.mainName}
+                        onChange={(e) => handleChange("mainName", e.target.value)}
+                        placeholder="למשל: מנחם מענדל כהן"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-2">טקסט נוסף (מתחת לשם)</label>
+                      <input
+                        className="w-full p-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-lev-blue/20 focus:border-lev-blue outline-none transition-all placeholder:text-gray-400"
+                        value={formData.subText}
+                        onChange={(e) => handleChange("subText", e.target.value)}
+                        placeholder="למשל: בן הרב פלוני ז”ל"
+                      />
+                    </div>
+                 </div>
+               </div>
+
+               {/* Right Column (Desktop) - Optional & Branding */}
+               <div className="space-y-6">
+                 
+                 <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-2">כותרת עליונה</label>
+                      <input
+                        className="w-full p-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-lev-blue/20 focus:border-lev-blue outline-none transition-all text-sm"
+                        value={formData.footerText}
+                        onChange={(e) => handleChange("footerText", e.target.value)}
+                        placeholder="אופציונלי"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-2">כותרת ההקדשה</label>
+                      <input
+                        className="w-full p-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-lev-blue/20 focus:border-lev-blue outline-none transition-all text-sm"
+                        value={formData.title}
+                        onChange={(e) => handleChange("title", e.target.value)}
+                        placeholder="אופציונלי"
+                      />
+                    </div>
+                 </div>
+
+                 <div className="bg-gray-50 p-6 rounded-2xl border border-gray-200 border-dashed">
+                    <h3 className="text-md font-bold text-gray-800 mb-4 flex items-center gap-2">
+                       <ImageIcon size={18} className="text-lev-blue" />
+                       מיתוג תורם (אופציונלי)
+                    </h3>
+                    
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-xs font-bold text-gray-500 mb-1">שם התורם / הקדשה</label>
+                        <input
+                          className="w-full p-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-lev-blue/20 outline-none"
+                          value={formData.donorName}
+                          onChange={(e) => handleChange("donorName", e.target.value)}
+                          placeholder="למשל: נתרם ע״י משפחת..."
+                        />
+                      </div>
+
+                      <div>
+                         <label className="block text-xs font-bold text-gray-500 mb-1">לוגו (קובץ או קישור)</label>
+                         <div className="flex gap-3 items-start">
+                            <div className="flex-1">
+                               <input
+                                  className="w-full p-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-lev-blue/20 outline-none text-left ltr text-sm mb-2"
+                                  value={formData.donorLogo}
+                                  onChange={(e) => handleChange("donorLogo", e.target.value)}
+                                  placeholder="https://..."
+                                />
+                                <label className="cursor-pointer bg-white border border-gray-200 hover:bg-gray-50 text-gray-600 px-4 py-2.5 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition w-full">
+                                  <ImageIcon size={16} />
+                                  בחר קובץ תמונה
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={handleFileChange}
+                                  />
+                                </label>
+                            </div>
+                            
+                            <div className="w-20 h-20 bg-white rounded-lg border border-gray-200 flex items-center justify-center p-2 overflow-hidden shrink-0">
+                               {formData.donorLogo ? (
+                                  <img src={formData.donorLogo} alt="Preview" className="w-full h-full object-contain" />
+                               ) : (
+                                  <span className="text-xs text-gray-300 text-center">אין לוגו</span>
+                               )}
+                            </div>
+                         </div>
+                      </div>
+                    </div>
+                 </div>
+               </div>
+            </form>
+          </div>
+
+          {/* Footer Actions */}
+          <div className="p-6 border-t bg-gray-50 rounded-b-2xl flex gap-4 shrink-0">
+             <button
                 type="button"
                 onClick={() => setShowPreview(true)}
-                className="flex-none px-4 py-3 bg-purple-100 text-purple-700 hover:bg-purple-200 rounded-lg font-bold transition"
+                className="px-6 py-3 bg-white border border-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-50 hover:border-gray-300 transition shadow-sm"
               >
                 תצוגה מקדימה
               </button>
-              <button type="button" onClick={onClose} className="flex-1 py-3 text-gray-500 font-bold">ביטול</button>
-              <button type="submit" className="flex-1 py-3 bg-lev-blue text-white rounded-lg font-bold">שמור</button>
-            </div>
-          </form>
+             <div className="flex-1"></div>
+             <button 
+                type="button" 
+                onClick={onClose} 
+                className="px-6 py-3 text-gray-500 font-bold hover:text-gray-700 transition"
+             >
+               ביטול
+             </button>
+             <button 
+                type="submit" 
+                form="item-form"
+                className="px-8 py-3 bg-lev-blue text-white font-bold rounded-xl hover:bg-blue-700 transition shadow-lg shadow-blue-200"
+             >
+               שמור שינויים
+             </button>
+          </div>
+
         </div>
       </div>
     </>

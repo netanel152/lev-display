@@ -7,7 +7,6 @@ const getItems = () => {
 
 const saveItems = (items) => {
   localStorage.setItem(STORAGE_KEYS.DISPLAY_ITEMS, JSON.stringify(items));
-  // Dispatch a custom event so the current tab also updates if listening
   window.dispatchEvent(new Event('storage'));
 };
 
@@ -21,24 +20,15 @@ const convertFileToBase64 = (file) => {
 };
 
 export const subscribeToItems = (callback) => {
-  // Initial load
   callback(getItems());
 
-  // Listen for storage changes (from other tabs)
   const handleStorageChange = (e) => {
-    if (e.key === STORAGE_KEYS.DISPLAY_ITEMS || e.type === 'storage') { // e.type check for manual dispatch
+    if (e.key === STORAGE_KEYS.DISPLAY_ITEMS || e.type === 'storage') {
       callback(getItems());
     }
   };
 
   window.addEventListener('storage', handleStorageChange);
-  
-  // Custom event listener for same-tab updates if needed (though direct calls usually handle this, 'storage' event is mainly for cross-tab)
-  // For same-tab, the caller usually updates their state after the promise resolves, or we rely on the callback being called again.
-  // In this mock service, since we return promises, the component might re-fetch or we can just invoke callback.
-  // We'll stick to 'storage' event which fires on other tabs. 
-  // However, for single-page app behavior, we might want to trigger the callback manually in add/update/delete.
-
   return () => {
     window.removeEventListener('storage', handleStorageChange);
   };
@@ -55,10 +45,10 @@ export const addItem = async (item, imageFile) => {
 
     const newId = items.length > 0 ? Math.max(...items.map(i => i.id)) + 1 : 1;
     const newItem = { ...item, id: newId, donorLogo: imageUrl };
-    
+
     const updatedItems = [...items, newItem];
     saveItems(updatedItems);
-    
+
     return newItem;
   } catch (error) {
     console.error("Error adding mock item:", error);
@@ -75,7 +65,7 @@ export const updateItem = async (id, data, imageFile) => {
       imageUrl = await convertFileToBase64(imageFile);
     }
 
-    const updatedItems = items.map(item => 
+    const updatedItems = items.map(item =>
       item.id === id ? { ...data, id, donorLogo: imageUrl } : item
     );
 
@@ -99,8 +89,16 @@ export const deleteItem = async (id) => {
   }
 };
 
+// Updated default settings to include mock contact info
+const DEFAULT_SETTINGS = {
+  slideDuration: 5000,
+  donationUrl: "https://www.levchabad.org/donate",
+  contactPhone: "050-7690577",
+  contactEmail: "office@LevChabad.org.il"
+};
+
 const getSettings = () => {
-  return safeJSONParse(localStorage.getItem(STORAGE_KEYS.APP_SETTINGS), { slideDuration: 5000 });
+  return safeJSONParse(localStorage.getItem(STORAGE_KEYS.APP_SETTINGS), DEFAULT_SETTINGS);
 };
 
 const saveSettings = (settings) => {

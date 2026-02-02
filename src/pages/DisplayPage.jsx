@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from "react";
-import { Minimize, Maximize, Lock } from "lucide-react";
+import { Minimize, Maximize, Lock, Phone, Mail } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import QRCode from "react-qr-code";
+import logo from "../assets/original-logo.jpg";
 import { getTodayHebrewDate, getCurrentHoliday } from "../utils/hebrewDate";
 import { subscribeToItems, subscribeToSettings } from "../services/dataService";
 import { EMPTY_SLIDE_DATA, DEFAULT_SLIDE_DURATION, FADE_DURATION } from "../constants";
@@ -14,22 +16,30 @@ const DisplayPage = () => {
   const [hebrewDate, setHebrewDate] = useState(getTodayHebrewDate());
   const wakeLock = useRef(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [slideDuration, setSlideDuration] = useState(DEFAULT_SLIDE_DURATION);
+  const [settings, setSettings] = useState({
+    slideDuration: DEFAULT_SLIDE_DURATION,
+    donationUrl: "",
+    contactPhone: "",
+    contactEmail: ""
+  });
 
   // Subscribe to data changes
   useEffect(() => {
+    console.log("[DisplayPage] Mounting and subscribing to data...");
     const unsubscribeItems = subscribeToItems((newItems) => {
       console.log(`[DisplayPage] Received ${newItems.length} items from service.`);
       setItems(newItems);
     });
 
-    const unsubscribeSettings = subscribeToSettings((settings) => {
-      if (settings && settings.slideDuration) {
-        setSlideDuration(settings.slideDuration);
+    const unsubscribeSettings = subscribeToSettings((newSettings) => {
+      if (newSettings) {
+        console.log("[DisplayPage] Received new settings:", newSettings);
+        setSettings(prev => ({ ...prev, ...newSettings }));
       }
     });
 
     return () => {
+      console.log("[DisplayPage] Unmounting and cleaning up subscriptions.");
       unsubscribeItems();
       unsubscribeSettings();
     };
@@ -70,7 +80,9 @@ const DisplayPage = () => {
   // Handle fullscreen change events
   useEffect(() => {
     const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
+      const isFull = !!document.fullscreenElement;
+      setIsFullscreen(isFull);
+      console.log(`[DisplayPage] Fullscreen mode changed: ${isFull ? 'Active' : 'Inactive'}`);
     };
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
@@ -87,15 +99,21 @@ const DisplayPage = () => {
   };
 
   const currentHoliday = getCurrentHoliday();
+  if (currentHoliday) {
+      console.log(`[DisplayPage] Today is a holiday: ${currentHoliday}`);
+  }
 
   // Filter items for today
   const todayItems = items.filter(item => {
     const todayGregorian = new Date().toLocaleDateString('en-CA');
     const todayHebrew = getTodayHebrewDate();
 
-    return !item.date && !item.hebrewDate ||
+    // Logic: Show if date is unset (always show) OR matches today's date (Gregorian or Hebrew)
+    const matches = !item.date && !item.hebrewDate ||
       item.date === todayGregorian ||
       item.hebrewDate === todayHebrew;
+      
+    return matches;
   });
 
   if (currentHoliday) {
@@ -111,10 +129,16 @@ const DisplayPage = () => {
   // Ensure index is always valid by using modulo
   const safeIndex = todayItems.length > 0 ? index % todayItems.length : 0;
 
+  // Log active item rotation (debounced or sparse to avoid flood)
+  useEffect(() => {
+      if (todayItems.length > 0) {
+          // console.log(`[DisplayPage] Showing slide ${safeIndex + 1}/${todayItems.length}`);
+      }
+  }, [safeIndex, todayItems.length]);
+
   // Slide rotation logic
   useEffect(() => {
     if (todayItems.length <= 1) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       if (!fade) setFade(true); // Ensure visible if only 1 item
       return;
     }
@@ -125,16 +149,19 @@ const DisplayPage = () => {
         setIndex((prev) => prev + 1); // Just increment, we handle modulo in render
         setFade(true);
       }, FADE_DURATION);
-    }, slideDuration);
+    }, settings.slideDuration);
 
     return () => clearInterval(interval);
-  }, [todayItems.length, slideDuration, fade]);
+  }, [todayItems.length, settings.slideDuration, fade]);
 
   // Hebrew Date updater
   useEffect(() => {
     const dateInterval = setInterval(() => {
       const newDate = getTodayHebrewDate();
-      if (newDate !== hebrewDate) setHebrewDate(newDate);
+      if (newDate !== hebrewDate) {
+          console.log(`[DisplayPage] Hebrew date changed to: ${newDate}`);
+          setHebrewDate(newDate);
+      }
     }, 60000);
     return () => clearInterval(dateInterval);
   }, [hebrewDate]);
@@ -169,13 +196,41 @@ const DisplayPage = () => {
         {hebrewDate}
       </div>
 
-      {/* Decorative Footer */}
-      <div className="fixed bottom-0 left-0 right-0 h-16 md:h-24 bg-lev-blue z-0 pointer-events-none">
-        <div className="absolute left-1/2 -translate-x-1/2 -top-4 md:-top-6 w-0 h-0 border-l-[20px] md:border-l-[30px] border-l-transparent border-r-[20px] md:border-r-[30px] border-r-transparent border-b-[20px] md:border-b-[30px] border-b-lev-blue"></div>
+      {/* Persistent Kiosk Footer */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gray-200 shadow-[0_-5px_20px_rgba(0,0,0,0.1)] z-50 flex items-center justify-between px-4 md:px-12 py-4">
+
+        {/* Left Side: Contact Info */}
+        <div className="flex flex-col items-start gap-1 text-left min-w-[200px]">
+          {settings.contactPhone && (
+            <div className="flex items-center gap-3">
+              <Phone className="w-5 h-5 md:w-6 md:h-6 text-lev-burgundy" />
+              <span className="text-xl md:text-2xl font-bold tracking-wider text-gray-800 font-mono">{settings.contactPhone}</span>
+            </div>
+          )}
+          {settings.contactEmail && (
+            <div className="flex items-center gap-3 text-gray-600">
+              <Mail className="w-4 h-4 md:w-5 md:h-5" />
+              <span className="text-sm md:text-base font-medium">{settings.contactEmail}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Center: QR Code */}
+        {settings.donationUrl && (
+          <div className="flex flex-col items-center justify-center bg-white p-3 rounded-xl border border-gray-100 mx-4">
+            <span className="text-xs md:text-sm font-bold text-gray-500 mb-2">לתרומות סרקו</span>
+            <QRCode
+              value={settings.donationUrl}
+              size={96}
+              className="w-20 h-20 md:w-24 md:h-24"
+            />
+          </div>
+        )}
+
       </div>
 
       {/* Main Card */}
-      <div className="w-full flex justify-center my-auto z-10 pb-20 md:pb-28">
+      <div className="w-full flex justify-center my-auto z-10 pb-48 transition-all duration-300">
         <SlideCard data={data} fade={fade} />
       </div>
     </div>
