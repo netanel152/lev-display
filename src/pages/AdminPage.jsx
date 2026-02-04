@@ -336,50 +336,67 @@ const AdminPage = () => {
                          <th className="px-4 py-3 text-right">שם מלא</th>
                          <th className="px-4 py-3 text-right hidden sm:table-cell">טקסט נוסף</th>
                          <th className="px-4 py-3 text-right">תאריך עברי</th>
+                         <th className="px-4 py-3 text-right">תאריך לועזי</th>
+                         <th className="px-4 py-3 text-right">תוקף</th>
                          <th className="px-4 py-3 text-right hidden md:table-cell">תורם</th>
                          <th className="px-4 py-3 w-[100px]">פעולות</th>
                        </tr>
                      </thead>
                      <tbody className="divide-y">
-                       {filteredItems.map(item => (
-                         <tr key={item.id} className="group hover:bg-gray-50 transition">
-                           <td className="px-4 py-3">
-                             <div className="font-bold text-gray-900">{item.mainName}</div>
-                           </td>
-                           <td className="px-4 py-3 text-gray-600 hidden sm:table-cell max-w-[200px] truncate">
-                             {item.subText}
-                           </td>
-                           <td className="px-4 py-3 text-gray-600">
-                             {item.hebrewDate}
-                           </td>
-                           <td className="px-4 py-3 text-gray-500 hidden md:table-cell">
-                             {item.donorName ? (
-                               <div className="flex items-center gap-2">
-                                 {item.donorLogo && <img src={item.donorLogo} className="w-4 h-4 object-contain" alt="" />}
-                                 <span className="truncate max-w-[120px]">{item.donorName}</span>
+                       {filteredItems.map(item => {
+                         const expiry = item.expirationTimestamp;
+                         let expiryText = "ללא הגבלה";
+                         if (expiry) {
+                           const date = expiry.seconds ? new Date(expiry.seconds * 1000) : new Date(expiry);
+                           expiryText = date.toLocaleDateString('he-IL');
+                         }
+
+                         return (
+                           <tr key={item.id} className="group hover:bg-gray-50 transition">
+                             <td className="px-4 py-3">
+                               <div className="font-bold text-gray-900">{item.mainName}</div>
+                             </td>
+                             <td className="px-4 py-3 text-gray-600 hidden sm:table-cell max-w-[200px] truncate">
+                               {item.subText}
+                             </td>
+                             <td className="px-4 py-3 text-gray-600">
+                               {item.hebrewDate}
+                             </td>
+                             <td className="px-4 py-3 text-gray-600">
+                               {item.gregorianDateString || '-'}
+                             </td>
+                             <td className="px-4 py-3 text-gray-600 font-medium">
+                               {expiryText}
+                             </td>
+                             <td className="px-4 py-3 text-gray-500 hidden md:table-cell">
+                               {item.donorName ? (
+                                 <div className="flex items-center gap-2">
+                                   {item.donorLogo && <img src={item.donorLogo} className="w-4 h-4 object-contain" alt="" />}
+                                   <span className="truncate max-w-[120px]">{item.donorName}</span>
+                                 </div>
+                               ) : '-'}
+                             </td>
+                             <td className="px-4 py-3">
+                               <div className="flex items-center justify-end gap-1 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                                 <button 
+                                   onClick={() => openEditForm(item)}
+                                   className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition"
+                                   title="ערוך"
+                                 >
+                                   <Pencil size={16} />
+                                 </button>
+                                 <button 
+                                   onClick={() => confirmDelete(item.id)}
+                                   className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition"
+                                   title="מחק"
+                                 >
+                                   <Trash2 size={16} />
+                                 </button>
                                </div>
-                             ) : '-'}
-                           </td>
-                           <td className="px-4 py-3">
-                             <div className="flex items-center justify-end gap-1 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
-                               <button 
-                                 onClick={() => openEditForm(item)}
-                                 className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition"
-                                 title="ערוך"
-                               >
-                                 <Pencil size={16} />
-                               </button>
-                               <button 
-                                 onClick={() => confirmDelete(item.id)}
-                                 className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition"
-                                 title="מחק"
-                               >
-                                 <Trash2 size={16} />
-                               </button>
-                             </div>
-                           </td>
-                         </tr>
-                       ))}
+                             </td>
+                           </tr>
+                         );
+                       })}
                      </tbody>
                    </table>
                  </div>

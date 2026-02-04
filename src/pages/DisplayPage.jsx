@@ -2,8 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Minimize, Maximize, Lock, Phone, Mail } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import QRCode from "react-qr-code";
-import logo from "../assets/original-logo.jpg";
-import { getTodayHebrewDate, getCurrentHoliday } from "../utils/hebrewDate";
+import { getTodayHebrewDate, getCurrentHoliday, isSameHebrewDayAndMonth } from "../utils/hebrewDate";
 import { subscribeToItems, subscribeToSettings } from "../services/dataService";
 import { EMPTY_SLIDE_DATA, DEFAULT_SLIDE_DURATION, FADE_DURATION } from "../constants";
 import SlideCard from "../components/SlideCard";
@@ -51,8 +50,6 @@ const DisplayPage = () => {
       try {
         if ('wakeLock' in navigator) {
           wakeLock.current = await navigator.wakeLock.request('screen');
-          console.log('[DisplayPage] Wake Lock is active!');
-          wakeLock.current.addEventListener('release', () => console.log('[DisplayPage] Wake Lock released'));
         }
       } catch (err) {
         console.error(`[DisplayPage] Wake Lock error: ${err.name}, ${err.message}`);
@@ -80,9 +77,7 @@ const DisplayPage = () => {
   // Handle fullscreen change events
   useEffect(() => {
     const handleFullscreenChange = () => {
-      const isFull = !!document.fullscreenElement;
-      setIsFullscreen(isFull);
-      console.log(`[DisplayPage] Fullscreen mode changed: ${isFull ? 'Active' : 'Inactive'}`);
+      setIsFullscreen(!!document.fullscreenElement);
     };
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
@@ -91,7 +86,7 @@ const DisplayPage = () => {
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen().catch((e) => {
-        console.error(`[DisplayPage] Error entering fullscreen: ${e.message}`);
+        console.error(`Error entering fullscreen: ${e.message}`);
       });
     } else if (document.exitFullscreen) {
       document.exitFullscreen();
@@ -99,21 +94,23 @@ const DisplayPage = () => {
   };
 
   const currentHoliday = getCurrentHoliday();
-  if (currentHoliday) {
-      console.log(`[DisplayPage] Today is a holiday: ${currentHoliday}`);
-  }
 
   // Filter items for today
   const todayItems = items.filter(item => {
-    const todayGregorian = new Date().toLocaleDateString('en-CA');
+    const now = new Date();
+    const todayGregorian = now.toLocaleDateString('en-CA');
     const todayHebrew = getTodayHebrewDate();
 
-    // Logic: Show if date is unset (always show) OR matches today's date (Gregorian or Hebrew)
-    const matches = !item.date && !item.hebrewDate ||
+    if (item.expirationTimestamp) {
+      const expiry = item.expirationTimestamp.seconds 
+        ? new Date(item.expirationTimestamp.seconds * 1000) 
+        : new Date(item.expirationTimestamp);
+      if (now > expiry) return false;
+    }
+
+    return (!item.date && !item.hebrewDate) ||
       item.date === todayGregorian ||
-      item.hebrewDate === todayHebrew;
-      
-    return matches;
+      isSameHebrewDayAndMonth(item.hebrewDate, todayHebrew);
   });
 
   if (currentHoliday) {
@@ -126,27 +123,19 @@ const DisplayPage = () => {
     });
   }
 
-  // Ensure index is always valid by using modulo
   const safeIndex = todayItems.length > 0 ? index % todayItems.length : 0;
-
-  // Log active item rotation (debounced or sparse to avoid flood)
-  useEffect(() => {
-      if (todayItems.length > 0) {
-          // console.log(`[DisplayPage] Showing slide ${safeIndex + 1}/${todayItems.length}`);
-      }
-  }, [safeIndex, todayItems.length]);
 
   // Slide rotation logic
   useEffect(() => {
     if (todayItems.length <= 1) {
-      if (!fade) setFade(true); // Ensure visible if only 1 item
+      if (!fade) setFade(true);
       return;
     }
 
     const interval = setInterval(() => {
       setFade(false);
       setTimeout(() => {
-        setIndex((prev) => prev + 1); // Just increment, we handle modulo in render
+        setIndex((prev) => prev + 1);
         setFade(true);
       }, FADE_DURATION);
     }, settings.slideDuration);
@@ -159,7 +148,6 @@ const DisplayPage = () => {
     const dateInterval = setInterval(() => {
       const newDate = getTodayHebrewDate();
       if (newDate !== hebrewDate) {
-          console.log(`[DisplayPage] Hebrew date changed to: ${newDate}`);
           setHebrewDate(newDate);
       }
     }, 60000);
@@ -173,57 +161,57 @@ const DisplayPage = () => {
   return (
     <div className="min-h-screen w-full bg-lev-yellow relative flex flex-col items-center p-3 md:p-8 overflow-x-hidden overflow-y-auto bg-[radial-gradient(circle_at_center,_var(--color-lev-yellow)_0%,_#fbbd08_100%)]">
 
-      {/* Admin Controls */}
+        {/* Admin Controls */}
       <div className="absolute top-3 left-3 md:top-6 md:left-6 z-50 flex gap-2">
-        <button
-          onClick={toggleFullscreen}
+          <button
+            onClick={toggleFullscreen}
           className="p-2 bg-white/50 hover:bg-white/80 rounded-full transition-all duration-300 opacity-30 hover:opacity-100 focus:opacity-100"
-          title={isFullscreen ? "יציאה ממסך מלא" : "מסך מלא"}
-        >
+            title={isFullscreen ? "יציאה ממסך מלא" : "מסך מלא"}
+          >
           {isFullscreen ? <Minimize size={16} className="text-lev-burgundy md:w-5 md:h-5" /> : <Maximize size={16} className="text-lev-burgundy md:w-5 md:h-5" />}
-        </button>
-        <button
-          onClick={() => navigate("/login")}
+          </button>
+          <button
+            onClick={() => navigate("/login")}
           className="p-2 bg-white/50 hover:bg-white/80 rounded-full transition-all duration-300 opacity-30 hover:opacity-100 focus:opacity-100"
-          title="כניסה למנהלים"
-        >
+            title="כניסה למנהלים"
+          >
           <Lock size={16} className="text-lev-burgundy md:w-5 md:h-5" />
-        </button>
-      </div>
+          </button>
+        </div>
 
-      {/* Hebrew Date Badge */}
+        {/* Hebrew Date Badge */}
       <div className="absolute top-3 right-3 md:top-6 md:right-6 z-20 bg-white/95 backdrop-blur px-3 py-1.5 md:px-6 md:py-3 rounded-full shadow-lg shadow-black/5 text-lev-burgundy font-bold text-sm md:text-3xl border md:border-2 border-lev-yellow">
-        {hebrewDate}
-      </div>
+          {hebrewDate}
+        </div>
 
       {/* Persistent Kiosk Footer */}
       <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gray-200 shadow-[0_-5px_20px_rgba(0,0,0,0.1)] z-50 flex items-center justify-between px-4 md:px-12 py-4">
 
         {/* Left Side: Contact Info */}
-        <div className="flex flex-col items-start gap-1 text-left min-w-[200px]">
+        <div className="flex flex-col items-start gap-2 text-left min-w-[200px]">
           {settings.contactPhone && (
-            <div className="flex items-center gap-3">
-              <Phone className="w-5 h-5 md:w-6 md:h-6 text-lev-burgundy" />
-              <span className="text-xl md:text-2xl font-bold tracking-wider text-gray-800 font-mono">{settings.contactPhone}</span>
+            <div className="flex items-center gap-4">
+              <Phone className="w-6 h-6 md:w-8 md:h-8 text-lev-burgundy" />
+              <span className="text-2xl md:text-4xl font-bold tracking-wider text-gray-800 font-mono">{settings.contactPhone}</span>
             </div>
           )}
           {settings.contactEmail && (
-            <div className="flex items-center gap-3 text-gray-600">
-              <Mail className="w-4 h-4 md:w-5 md:h-5" />
-              <span className="text-sm md:text-base font-medium">{settings.contactEmail}</span>
+            <div className="flex items-center gap-4 text-gray-600">
+              <Mail className="w-5 h-5 md:w-7 md:h-7" />
+              <span className="text-lg md:text-2xl font-semibold">{settings.contactEmail}</span>
             </div>
           )}
         </div>
 
         {/* Center: QR Code */}
         {settings.donationUrl && (
-          <div className="flex flex-col items-center justify-center bg-white p-3 rounded-xl border border-gray-100 mx-4">
-            <span className="text-xs md:text-sm font-bold text-gray-500 mb-2">לתרומות סרקו</span>
-            <QRCode
-              value={settings.donationUrl}
-              size={96}
-              className="w-20 h-20 md:w-24 md:h-24"
-            />
+          <div className="flex flex-col items-center justify-center bg-white p-4 rounded-2xl border border-gray-100 mx-4 shadow-sm">
+            <span className="text-sm md:text-xl font-bold text-gray-800 mb-3">רוצים לתרום? סרקו אותי 🙂</span>
+              <QRCode
+                value={settings.donationUrl}
+                size={128}
+                className="w-24 h-24 md:w-32 md:h-32"
+              />
           </div>
         )}
 

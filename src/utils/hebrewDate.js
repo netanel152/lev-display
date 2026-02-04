@@ -150,3 +150,34 @@ export const getCurrentHoliday = () => {
 
   return null;
 };
+
+/**
+ * Compares two Hebrew date strings and returns true if they have the same day and month.
+ * Format expected: "ט' בתשרי תשפ"ה"
+ */
+export const isSameHebrewDayAndMonth = (dateStr1, dateStr2) => {
+  if (!dateStr1 || !dateStr2) return false;
+  
+  const getParts = (str) => {
+    const parts = str.split(' ');
+    if (parts.length < 2) return null;
+    
+    // Day is the first part
+    const day = parts[0];
+    
+    // Month is the second part, usually starts with 'ב'
+    let month = parts[1];
+    if (month.startsWith('ב')) {
+      month = month.substring(1);
+    }
+    
+    return { day, month };
+  };
+
+  const p1 = getParts(dateStr1);
+  const p2 = getParts(dateStr2);
+
+  if (!p1 || !p2) return false;
+
+  return p1.day === p2.day && p1.month === p2.month;
+};
