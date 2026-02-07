@@ -11,8 +11,8 @@
   --font-admin: "Assistant", sans-serif;
 
   --animate-fade-in: fadeIn 0.7s ease-in-out;
-  --animate-bounce-slow: bounceSlow 3s infinite ease-in-out;
-  --animate-float-pulse: floatPulse 4s infinite ease-in-out;
+  --animate-bounce-slow: bounceSlow 1.5s infinite ease-in-out;
+  --animate-float-pulse: floatPulse 2s infinite ease-in-out;
 
   @keyframes fadeIn {
     from {
@@ -30,8 +30,8 @@
       filter: drop-shadow(0 5px 15px rgba(0,0,0,0.1));
     }
     50% {
-      transform: translateY(5%) scale(1.1);
-      filter: drop-shadow(0 15px 25px rgba(0,0,0,0.2));
+      transform: translateY(5%) scale(1.05);
+      filter: drop-shadow(0 10px 20px rgba(0,0,0,0.15));
     }
   }
 

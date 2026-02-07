@@ -77,27 +77,28 @@ const SlideCard = ({ data, fade = true }) => {
 
   return (
     <div className={`relative w-full h-full flex items-center justify-center transition-all duration-700 ease-in-out transform ${fade ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
-      
-      {/* Outer Glow & Gradient Container */}
-      <div className={`p-2 md:p-6 w-full h-full rounded-[3rem] md:rounded-[5rem] bg-gradient-to-br ${config.gradient} shadow-[0_20px_80px_-15px] ${config.shadow} transition-all duration-500 overflow-hidden`}>
-        
-        {/* Inner Card (Glassmorphism) */}
-        <div className={`bg-white/95 backdrop-blur-sm w-full h-full rounded-[2.5rem] md:rounded-[4rem] border-2 md:border-4 ${config.border} p-6 md:p-12 flex flex-col items-center justify-between relative overflow-hidden`}>
-          
-          {/* Decorative Background Elements */}
+
+            {/* Outer Glow & Gradient Container */}
+            <div className={`p-1 md:p-3 w-full h-full rounded-[2.5rem] md:rounded-[4.5rem] bg-gradient-to-br ${config.gradient} shadow-[0_15px_60px_-15px] ${config.shadow} transition-all duration-500 overflow-hidden`}>
+              
+              {/* Inner Card (Glassmorphism) */}
+              <div className={`bg-white/95 backdrop-blur-sm w-full h-full rounded-[2rem] md:rounded-[4rem] border md:border-2 ${config.border} p-5 md:p-10 flex flex-col items-center justify-between relative overflow-hidden`}>
+                          {/* Decorative Background Elements */}
           <div className={`absolute -top-32 -right-32 w-80 h-80 bg-gradient-to-br ${config.gradient} opacity-10 blur-3xl rounded-full`} />
           <div className={`absolute -bottom-32 -left-32 w-80 h-80 bg-gradient-to-br ${config.gradient} opacity-10 blur-3xl rounded-full`} />
 
           {/* 1. Top Section: Logo & Icon */}
-          <div className="shrink-0 flex flex-col items-center gap-4 md:gap-8 z-10">
-            <img 
-              src={logo} 
-              alt="לב חב'ד" 
-              className="h-16 md:h-32 lg:h-44 w-auto object-contain transition-all duration-500" 
-            />
-            <div className="relative">
+          <div className="shrink-0 flex flex-col items-center gap-4 md:gap-6 z-10">
+            <div className="bg-white/50 backdrop-blur-sm p-2 md:p-3 rounded-2xl md:rounded-[2rem] shadow-xl border border-white/40">
+              <img
+                src={logo}
+                alt="לב חב'ד"
+                className="h-14 md:h-28 lg:h-36 w-auto object-contain transition-all duration-500 rounded-lg md:rounded-2xl"
+              />
+            </div>
+            <div className="relative mt-1 md:mt-2">
               <div className={`absolute inset-0 bg-gradient-to-br ${config.gradient} opacity-30 blur-3xl rounded-full animate-pulse scale-150`} />
-              <div className={`${theme.color} filter drop-shadow-2xl transform scale-[0.7] md:scale-[1.2] lg:scale-[1.5] animate-float-pulse`}>
+              <div className={`${theme.color} filter drop-shadow-2xl transform scale-[0.7] md:scale-[1.0] lg:scale-[1.3] animate-float-pulse`}>
                 {theme.icon}
               </div>
             </div>
@@ -115,7 +116,7 @@ const SlideCard = ({ data, fade = true }) => {
               <h1 className={`${getMainFontSize(data.mainName)} font-black text-center leading-[1.05] tracking-tight drop-shadow-md break-words w-full ${config.name}`}>
                 {data.mainName}
               </h1>
-              
+
               <h3 className={`${getSubFontSize(data.subText)} font-bold text-center leading-relaxed ${config.subText} w-full`}>
                 {data.subText}
               </h3>
@@ -137,7 +138,7 @@ const SlideCard = ({ data, fade = true }) => {
                     {data.hebrewDate}
                   </div>
                 )}
-                <div className={`text-2xl md:text-5xl lg:text-8xl font-black tracking-[0.3em] md:tracking-[0.6em] leading-none mr-[0.3em] md:mr-[0.6em] drop-shadow-lg ${config.footer}`}>
+                <div className={`text-2xl md:text-5xl lg:text-8xl font-black tracking-[0.1em] md:tracking-[0.4em] leading-none pr-[0.1em] md:pr-[0.4em] drop-shadow-lg ${config.footer}`}>
                   ת.נ.צ.ב.ה
                 </div>
               </div>
@@ -149,32 +150,33 @@ const SlideCard = ({ data, fade = true }) => {
               )
             )}
 
-            {/* Donor Branding - Smart Adaptive Layout */}
-            {(data.donorName || data.donorLogo) && (
-              <div className="mt-4 md:mt-12 pt-3 md:pt-8 border-t-2 border-gray-100/50 w-full flex flex-col items-center gap-2 md:gap-6 z-10">
-                <span className="text-[10px] md:text-2xl lg:text-3xl font-black text-gray-400 tracking-[0.2em] uppercase">נתרם ע"י</span>
-                
-                <div className={`w-full flex ${data.donorName && data.donorLogo ? 'flex-col md:flex-row-reverse md:justify-around' : 'flex-col'} items-center gap-4 md:gap-12 px-2 md:px-10`}>
-                  {data.donorLogo && (
-                    <div className="flex-1 flex justify-center md:justify-end">
-                      <img 
-                        src={data.donorLogo} 
-                        alt={data.donorName || "לוגו תורם"} 
-                        className="h-10 md:h-24 lg:h-32 w-auto object-contain transition-all" 
-                      />
-                    </div>
-                  )}
-                  {data.donorName && (
-                    <div className={`flex-1 flex justify-center ${data.donorLogo ? 'md:justify-start' : 'md:justify-center'}`}>
-                      <span className={`text-lg md:text-5xl lg:text-6xl font-black ${config.footer} opacity-90 text-center md:text-right leading-tight`}>
-                        {data.donorName}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
+                        {/* Donor Branding - Smart Adaptive Layout */}
+                        {(data.donorName || data.donorLogo) && (
+                          <div className="mt-2 md:mt-6 pt-2 md:pt-4 border-t border-gray-100/50 w-full flex flex-col items-center gap-1 md:gap-3 z-10">
+                            <span className="text-[10px] md:text-lg lg:text-xl font-bold text-gray-400 tracking-[0.2em] uppercase">נתרם ע"י</span>
+                            
+                            <div className={`w-full flex ${data.donorName && data.donorLogo ? 'flex-col md:flex-row-reverse md:justify-around' : 'flex-col'} items-center gap-2 md:gap-6 px-2 md:px-10`}>
+                              {data.donorLogo && (
+                                <div className="flex-1 flex justify-center md:justify-end">
+                                  <div className="bg-white p-1 md:p-2 rounded-xl shadow-md border border-gray-100/50">
+                                    <img 
+                                      src={data.donorLogo} 
+                                      alt={data.donorName || "לוגו תורם"} 
+                                      className="h-8 md:h-16 lg:h-24 w-auto object-contain transition-all rounded-lg" 
+                                    />
+                                  </div>
+                                </div>
+                              )}
+                              {data.donorName && (
+                                <div className={`flex-1 flex justify-center ${data.donorLogo ? 'md:justify-start' : 'md:justify-center'}`}>
+                                  <span className={`text-base md:text-3xl lg:text-4xl font-black ${config.footer} opacity-90 text-center md:text-right leading-tight`}>
+                                    {data.donorName}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}          </div>
         </div>
       </div>
     </div>

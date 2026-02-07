@@ -94,7 +94,7 @@ const DisplayPage = () => {
         
         {/* Left Side: בס"ד and Controls */}
         <div className="flex items-center gap-4">
-          <div className="text-lev-burgundy font-bold text-lg md:text-3xl opacity-80 whitespace-nowrap">בס"ד</div>
+          <div className="text-lev-burgundy font-black text-lg md:text-3xl opacity-80 whitespace-nowrap">בס"ד</div>
           <div className="flex gap-1 md:gap-2">
             <button onClick={toggleFullscreen} className="p-2 md:p-3 bg-white/30 hover:bg-white/60 rounded-full transition-all opacity-40 hover:opacity-100">
               {isFullscreen ? <Minimize size={18} className="text-lev-burgundy md:w-6 md:h-6" /> : <Maximize size={18} className="text-lev-burgundy md:w-6 md:h-6" />}

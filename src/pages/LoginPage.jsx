@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { User, Lock, LayoutDashboard, MonitorPlay, LogIn, Loader2, Eye, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import { login } from "../services/authService";
+import { STORAGE_KEYS } from "../constants";
 import logo from "../assets/original-logo.jpg";
 
 const LoginPage = () => {
@@ -14,6 +15,14 @@ const LoginPage = () => {
   const [destination, setDestination] = useState("admin");
 
   const navigate = useNavigate();
+
+  // Auto-redirect if already logged in
+  useEffect(() => {
+    const isAdmin = localStorage.getItem(STORAGE_KEYS.IS_ADMIN);
+    if (isAdmin === "true") {
+      navigate("/admin", { replace: true });
+    }
+  }, [navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
