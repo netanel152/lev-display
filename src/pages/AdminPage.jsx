@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import { subscribeToItems, addItem, updateItem, deleteItem, subscribeToSettings, updateSettings } from "../services/dataService";
 import { logout } from "../services/authService";
-import { STORAGE_KEYS } from "../constants";
+import { STORAGE_KEYS, DEFAULT_SETTINGS } from "../constants";
 import ConfirmModal from "../components/ConfirmModal";
 import AdminItemForm from "../components/AdminItemForm";
 
@@ -15,14 +15,9 @@ const AdminPage = () => {
   const navigate = useNavigate();
 
   const [items, setItems] = useState([]);
-  const [globalSettings, setGlobalSettings] = useState({
-    slideDuration: 5000,
-    donationUrl: "",
-    contactPhone: "",
-    contactEmail: ""
-  });
+  const [globalSettings, setGlobalSettings] = useState({ ...DEFAULT_SETTINGS });
 
-  const [localSettings, setLocalSettings] = useState({ ...globalSettings });
+  const [localSettings, setLocalSettings] = useState({ ...DEFAULT_SETTINGS });
   const [activeTab, setActiveTab] = useState('memorial');
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
@@ -170,27 +165,31 @@ const AdminPage = () => {
         </div>
 
         {/* Tabs - Scrollable on mobile */}
-        <div className="max-w-7xl mx-auto px-4 flex overflow-x-auto no-scrollbar gap-2 py-2 border-t">
-          {tabs.map((tab) => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`
-                  flex items-center gap-2 px-4 py-2 rounded-full transition-all whitespace-nowrap font-bold text-xs md:text-sm border shrink-0
-                  ${isActive
-                    ? tab.activeColor + ' border-transparent shadow-sm'
-                    : 'bg-white text-gray-500 border-gray-100 hover:bg-gray-50'
-                  }
-                `}
-              >
-                <Icon size={16} />
-                {tab.label}
-              </button>
-            );
-          })}
+        <div className="max-w-7xl mx-auto px-4 pt-4 border-t">
+          <h2 className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-2 px-1">ניהול תוכן / בחר קטגוריה</h2>
+          <div className="flex overflow-x-auto no-scrollbar gap-2 pb-3">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  title={tab.label}
+                  className={`
+                    flex items-center gap-2 px-4 py-2 rounded-full transition-all whitespace-nowrap font-bold text-xs md:text-sm border shrink-0
+                    ${isActive
+                      ? tab.activeColor + ' border-transparent shadow-sm'
+                      : 'bg-white text-gray-500 border-gray-100 hover:bg-gray-50'
+                    }
+                  `}
+                >
+                  <Icon size={16} />
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </header>
 
@@ -245,6 +244,46 @@ const AdminPage = () => {
                 />
               </div>
 
+              <div className="pt-4 border-t">
+                <h3 className="text-sm font-bold text-gray-800 mb-4 flex items-center gap-2">
+                  <MonitorPlay size={16} className="text-lev-burgundy" /> תוכן הקדשה ברירת מחדל (כשאין הקדשות באותו יום)
+                </h3>
+                <div className="space-y-4">
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">כותרת עליונה</label>
+                    <input
+                      type="text" value={localSettings.defaultSlideTitle}
+                      onChange={(e) => handleLocalSettingChange('defaultSlideTitle', e.target.value)}
+                      className="w-full p-3 border rounded-xl focus:ring-2 focus:ring-lev-burgundy/10 outline-none transition-all"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">שם מרכזי</label>
+                    <input
+                      type="text" value={localSettings.defaultSlideMainName}
+                      onChange={(e) => handleLocalSettingChange('defaultSlideMainName', e.target.value)}
+                      className="w-full p-3 border rounded-xl focus:ring-2 focus:ring-lev-burgundy/10 outline-none transition-all font-bold"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">תיאור / סאב-טקסט</label>
+                    <input
+                      type="text" value={localSettings.defaultSlideSubText}
+                      onChange={(e) => handleLocalSettingChange('defaultSlideSubText', e.target.value)}
+                      className="w-full p-3 border rounded-xl focus:ring-2 focus:ring-lev-burgundy/10 outline-none transition-all"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">טקסט תחתון (פוטר)</label>
+                    <input
+                      type="text" value={localSettings.defaultSlideFooterText}
+                      onChange={(e) => handleLocalSettingChange('defaultSlideFooterText', e.target.value)}
+                      className="w-full p-3 border rounded-xl focus:ring-2 focus:ring-lev-burgundy/10 outline-none transition-all"
+                    />
+                  </div>
+                </div>
+              </div>
+
               <button
                 onClick={saveSettings}
                 className="w-full flex items-center justify-center gap-2 bg-lev-burgundy text-white py-3 rounded-xl font-bold hover:bg-opacity-90 transition shadow-lg shadow-lev-burgundy/20 mt-4"
@@ -255,10 +294,15 @@ const AdminPage = () => {
           </div>
         ) : (
           <div className="space-y-4 animate-in fade-in duration-300">
-            <div className="flex justify-between items-center px-1">
-              <h2 className="text-gray-400 text-xs font-bold uppercase tracking-widest">
-                {filteredItems.length} פריטים רשומים
-              </h2>
+            <div className="flex justify-between items-end px-1">
+              <div>
+                <h2 className="text-2xl font-black text-gray-800">
+                  {tabs.find(t => t.id === activeTab)?.label}
+                </h2>
+                <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mt-1">
+                  {filteredItems.length} פריטים רשומים
+                </p>
+              </div>
             </div>
 
             <div className="bg-white rounded-2xl shadow-sm border overflow-hidden">

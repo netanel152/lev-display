@@ -84,7 +84,15 @@ const DisplayPage = () => {
     return () => clearInterval(interval);
   }, [todayItems.length, settings.slideDuration]);
 
-  const data = todayItems.length > 0 ? todayItems[safeIndex] : EMPTY_SLIDE_DATA;
+  const data = todayItems.length > 0 
+    ? todayItems[safeIndex] 
+    : {
+        ...EMPTY_SLIDE_DATA,
+        title: settings.defaultSlideTitle || EMPTY_SLIDE_DATA.title,
+        mainName: settings.defaultSlideMainName || EMPTY_SLIDE_DATA.mainName,
+        subText: settings.defaultSlideSubText || EMPTY_SLIDE_DATA.subText,
+        footerText: settings.defaultSlideFooterText || EMPTY_SLIDE_DATA.footerText,
+      };
 
   return (
     <div className="min-h-screen h-[100dvh] w-full bg-lev-yellow relative flex flex-col overflow-hidden bg-[radial-gradient(circle_at_center,_#FDCF41_0%,_#fbbd08_100%)] select-none">
@@ -96,10 +104,18 @@ const DisplayPage = () => {
         <div className="flex items-center gap-4">
           <div className="text-lev-burgundy font-black text-lg md:text-3xl opacity-80 whitespace-nowrap">בס"ד</div>
           <div className="flex gap-1 md:gap-2">
-            <button onClick={toggleFullscreen} className="p-2 md:p-3 bg-white/30 hover:bg-white/60 rounded-full transition-all opacity-40 hover:opacity-100">
+            <button 
+              onClick={toggleFullscreen} 
+              title={isFullscreen ? "צא ממסך מלא" : "מסך מלא"}
+              className="p-2 md:p-3 bg-white/30 hover:bg-white/60 rounded-full transition-all opacity-40 hover:opacity-100"
+            >
               {isFullscreen ? <Minimize size={18} className="text-lev-burgundy md:w-6 md:h-6" /> : <Maximize size={18} className="text-lev-burgundy md:w-6 md:h-6" />}
             </button>
-            <button onClick={() => navigate("/login")} className="p-2 md:p-3 bg-white/30 hover:bg-white/60 rounded-full transition-all opacity-40 hover:opacity-100">
+            <button 
+              onClick={() => navigate("/login")} 
+              title="ניהול מערכת"
+              className="p-2 md:p-3 bg-white/30 hover:bg-white/60 rounded-full transition-all opacity-40 hover:opacity-100"
+            >
               <Lock size={18} className="text-lev-burgundy md:w-6 md:h-6" />
             </button>
           </div>
@@ -119,10 +135,10 @@ const DisplayPage = () => {
       </main>
 
       {/* 3. Kiosk Footer - Ultra Responsive */}
-      <footer className="w-full bg-white/95 backdrop-blur-md border-t-2 border-lev-burgundy/10 shadow-[0_-10px_40px_rgba(0,0,0,0.08)] z-50 px-4 md:px-16 py-3 md:py-6 flex items-center justify-between shrink-0 gap-2">
+      <footer className="w-full bg-white/95 backdrop-blur-md border-t-2 border-lev-burgundy/10 shadow-[0_-10px_40px_rgba(0,0,0,0.08)] z-50 px-4 md:px-16 py-3 md:py-6 flex items-center justify-between shrink-0 gap-2 relative">
         
         {/* Contact Info */}
-        <div className="flex flex-col gap-0.5 md:gap-2 flex-1">
+        <div className="flex flex-col gap-0.5 md:gap-2 flex-1 z-10">
           {settings.contactPhone && (
             <div className="flex items-center gap-2 md:gap-4">
               <Phone className="w-4 h-4 md:w-8 md:h-8 lg:w-10 lg:h-10 text-lev-burgundy shrink-0" />
@@ -137,14 +153,14 @@ const DisplayPage = () => {
           )}
         </div>
 
-        {/* Center Branding - Visible only on larger screens */}
-        <div className="hidden lg:block text-center px-4">
-          <h2 className="text-lev-burgundy font-black text-lg xl:text-2xl opacity-30 italic whitespace-nowrap">לב חב"ד - תמיד כאן בשבילכם</h2>
+        {/* Center Branding - Absolute for true centering */}
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none z-0 px-2">
+          <h2 className="text-lev-burgundy font-black text-[10px] sm:text-lg xl:text-2xl opacity-10 md:opacity-25 italic whitespace-nowrap">לב חב"ד - תמיד כאן בשבילכם</h2>
         </div>
 
         {/* QR Code Section */}
         {settings.donationUrl && (
-          <div className="flex items-center gap-2 md:gap-6 bg-lev-yellow/5 p-1 md:p-3 rounded-2xl md:rounded-3xl border border-lev-burgundy/5 shadow-inner">
+          <div className="flex items-center gap-2 md:gap-6 bg-lev-yellow/5 p-1 md:p-3 rounded-2xl md:rounded-3xl border border-lev-burgundy/5 shadow-inner z-10">
             <span className="hidden sm:block text-right text-[10px] md:text-lg font-black text-lev-burgundy leading-tight">
               רוצים לתרום?<br/>סרקו אותי 🙂
             </span>

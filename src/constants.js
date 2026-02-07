@@ -70,10 +70,39 @@ export const MOCK_DATA = [
 ];
 
 export const EMPTY_SLIDE_DATA = {
+
   id: 'empty',
+
   type: 'memorial',
+
   footerText: 'ברוכים הבאים ללב חב"ד',
+
   title: 'הכתובת שלך במרכז הרפואי',
+
   mainName: 'לב חב"ד',
+
   subText: 'כאן בשבילכם תמיד',
+
+};
+
+
+
+export const DEFAULT_SETTINGS = {
+
+  slideDuration: DEFAULT_SLIDE_DURATION,
+
+  donationUrl: "",
+
+  contactPhone: "",
+
+  contactEmail: "",
+
+  defaultSlideTitle: EMPTY_SLIDE_DATA.title,
+
+  defaultSlideMainName: EMPTY_SLIDE_DATA.mainName,
+
+  defaultSlideSubText: EMPTY_SLIDE_DATA.subText,
+
+  defaultSlideFooterText: EMPTY_SLIDE_DATA.footerText,
+
 };

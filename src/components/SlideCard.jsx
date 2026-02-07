@@ -68,7 +68,7 @@ const getSubFontSize = (text) => {
 const SlideCard = ({ data, fade = true }) => {
   const theme = getTheme(data.type, data.mainName);
   const config = THEME_CONFIG[data.type] || THEME_CONFIG.memorial;
-  const isMemorial = data.type === 'memorial';
+  const isMemorial = data.type === 'memorial' && data.id !== 'empty';
   const isSuccess = data.type === 'success';
 
   const displayTitle = isSuccess && data.title && !data.title.includes('להצלחת')
