@@ -119,11 +119,10 @@ const AdminPage = () => {
     { id: 'healing', label: 'לרפואת', icon: HeartPulse, color: 'text-green-600', activeColor: 'bg-green-100 text-green-700' },
     { id: 'birthday', label: 'יום הולדת', icon: Cake, color: 'text-pink-600', activeColor: 'bg-pink-100 text-pink-700' },
     { id: 'success', label: 'להצלחה', icon: Star, color: 'text-blue-600', activeColor: 'bg-blue-100 text-blue-700' },
-    { id: 'settings', label: 'הגדרות', icon: Settings, color: 'text-gray-600', activeColor: 'bg-gray-100 text-gray-800' },
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 font-admin flex flex-col" dir="rtl">
+    <div className="h-screen overflow-y-auto bg-gray-50 font-admin flex flex-col" dir="rtl">
       <ConfirmModal
         isOpen={isDeleteModalOpen}
         title="מחיקת הקדשה"
@@ -152,16 +151,40 @@ const AdminPage = () => {
             <div className="bg-lev-burgundy text-white p-1.5 rounded-lg shadow-sm shrink-0">
               <Settings size={18} />
             </div>
-            <span className="truncate">ניהול מערכת לב חב"ד</span>
+            <span className="truncate">ניהול לב חב"ד</span>
           </h1>
 
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-2 text-gray-500 hover:text-red-600 px-3 py-1.5 rounded-lg hover:bg-red-50 transition-all font-bold text-sm"
-          >
-            <LogOut size={18} className="transform scale-x-[-1]" />
-            <span className="hidden sm:inline">התנתק</span>
-          </button>
+          <div className="flex items-center gap-2 md:gap-3">
+            <button
+              onClick={() => setActiveTab('settings')}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all font-bold text-sm ${
+                activeTab === 'settings' 
+                ? 'bg-gray-800 text-white shadow-md' 
+                : 'text-gray-500 hover:bg-gray-100'
+              }`}
+            >
+              <Settings size={18} />
+              <span className="hidden sm:inline">הגדרות</span>
+            </button>
+
+            <button
+              onClick={() => navigate("/display")}
+              className="flex items-center gap-2 text-lev-burgundy bg-lev-yellow/20 hover:bg-lev-yellow/40 px-3 py-1.5 rounded-lg transition-all font-bold text-sm border border-lev-yellow/30"
+            >
+              <MonitorPlay size={18} />
+              <span className="hidden sm:inline">למסך התצוגה</span>
+            </button>
+
+            <div className="w-px h-6 bg-gray-200 mx-1 hidden sm:block" />
+
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 text-gray-400 hover:text-red-600 px-3 py-1.5 rounded-lg hover:bg-red-50 transition-all font-bold text-sm"
+            >
+              <LogOut size={18} className="transform scale-x-[-1]" />
+              <span className="hidden sm:inline">התנתק</span>
+            </button>
+          </div>
         </div>
 
         {/* Tabs - Scrollable on mobile */}
@@ -193,7 +216,7 @@ const AdminPage = () => {
         </div>
       </header>
 
-      <main className="flex-1 max-w-7xl mx-auto w-full p-4 md:p-6 pb-32">
+      <main className="flex-1 max-w-7xl mx-auto w-full p-4 md:p-6 pb-20">
         {activeTab === 'settings' ? (
           <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-sm border p-6 md:p-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
             <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
@@ -262,7 +285,7 @@ const AdminPage = () => {
                     <input
                       type="text" value={localSettings.defaultSlideMainName}
                       onChange={(e) => handleLocalSettingChange('defaultSlideMainName', e.target.value)}
-                      className="w-full p-3 border rounded-xl focus:ring-2 focus:ring-lev-burgundy/10 outline-none transition-all font-bold"
+                      className="w-full p-3 border rounded-xl focus:ring-2 focus:ring-lev-burgundy/10 outline-none transition-all"
                     />
                   </div>
                   <div className="space-y-1">
@@ -294,7 +317,7 @@ const AdminPage = () => {
           </div>
         ) : (
           <div className="space-y-4 animate-in fade-in duration-300">
-            <div className="flex justify-between items-end px-1">
+            <div className="flex justify-between items-center px-1">
               <div>
                 <h2 className="text-2xl font-black text-gray-800">
                   {tabs.find(t => t.id === activeTab)?.label}
@@ -303,6 +326,13 @@ const AdminPage = () => {
                   {filteredItems.length} פריטים רשומים
                 </p>
               </div>
+              <button
+                onClick={openNewItemForm}
+                className="bg-lev-burgundy text-white px-4 py-2.5 rounded-xl shadow-lg shadow-lev-burgundy/20 hover:bg-opacity-90 transition-all flex items-center gap-2 font-bold text-sm"
+              >
+                <Plus size={18} />
+                <span>הוסף הקדשה</span>
+              </button>
             </div>
 
             <div className="bg-white rounded-2xl shadow-sm border overflow-hidden">
@@ -376,25 +406,6 @@ const AdminPage = () => {
           </div>
         )}
       </main>
-
-      {/* Mobile-Friendly Floating Footer Actions */}
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 flex gap-3 px-4 w-full max-w-lg z-40">
-        <button
-          onClick={() => navigate("/display")}
-          className="flex-1 bg-white text-gray-700 h-14 rounded-2xl shadow-xl border border-gray-100 hover:bg-gray-50 transition-all flex items-center justify-center gap-2 font-bold group"
-        >
-          <MonitorPlay size={20} className="text-lev-burgundy group-hover:scale-110 transition-transform" />
-          <span className="text-sm">למסך התצוגה</span>
-        </button>
-
-        <button
-          onClick={openNewItemForm}
-          className="flex-[2] bg-lev-burgundy text-white h-14 rounded-2xl shadow-xl hover:bg-opacity-90 transition-all flex items-center justify-center gap-2 font-bold group"
-        >
-          <Plus size={20} className="group-hover:rotate-90 transition-transform duration-300" />
-          <span className="text-sm">הוסף הקדשה</span>
-        </button>
-      </div>
     </div>
   );
 };
