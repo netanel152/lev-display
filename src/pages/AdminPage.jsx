@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import {
   Plus, LogOut, Flame, HeartPulse, Cake, Star, Settings,
-  Pencil, Trash2, Search, Save, MonitorPlay
+  Pencil, Trash2, Search, Save, MonitorPlay, HandHeart, StickyNote
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
@@ -336,7 +336,11 @@ const AdminPage = () => {
                         return (
                           <tr key={item.id} className="group hover:bg-gray-50/50 transition-all">
                             <td className="px-4 py-4">
-                              <div className="font-bold text-gray-900 text-sm md:text-base">{item.mainName}</div>
+                              <div className="flex items-center gap-2">
+                                <div className="font-bold text-gray-900 text-sm md:text-base">{item.mainName}</div>
+                                {item.donorName && <HandHeart size={14} className="text-lev-burgundy shrink-0" title="יש פרטי תורם" />}
+                                {item.notes && <StickyNote size={14} className="text-blue-500 shrink-0" title="יש הערות" />}
+                              </div>
                               <div className="text-[10px] text-gray-400 sm:hidden truncate max-w-[120px]">{item.subText}</div>
                             </td>
                             <td className="px-4 py-4 text-gray-500 text-sm hidden sm:table-cell max-w-[150px] lg:max-w-[250px] truncate">

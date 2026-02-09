@@ -9,7 +9,7 @@ import SlideCard from "../components/SlideCard";
 
 const DisplayPage = () => {
   const navigate = useNavigate();
-  const [items, setItems] = useState([]);
+  const [items, setItems] = useState(null);
   const [index, setIndex] = useState(0);
   const [fade, setFade] = useState(true);
   const [hebrewDate, setHebrewDate] = useState(getTodayHebrewDate());
@@ -55,7 +55,8 @@ const DisplayPage = () => {
   };
 
   const currentHoliday = getCurrentHoliday();
-  const todayItems = items.filter(item => {
+  
+  const todayItems = (items || []).filter(item => {
     const now = new Date();
     const todayGregorian = now.toLocaleDateString('en-CA');
     const todayHebrew = getTodayHebrewDate();
@@ -84,88 +85,94 @@ const DisplayPage = () => {
     return () => clearInterval(interval);
   }, [todayItems.length, settings.slideDuration]);
 
-  const data = todayItems.length > 0 
-    ? todayItems[safeIndex] 
+  if (items === null) {
+    return (
+      <div className="h-[100dvh] w-full bg-lev-yellow flex flex-col items-center justify-center bg-[radial-gradient(circle_at_center,_#FDCF41_0%,_#fbbd08_100%)] select-none overflow-hidden">
+        <div className="flex flex-col items-center gap-[4vh]">
+          <div className="w-[10vh] h-[10vh] border-[1vh] border-lev-burgundy/20 border-t-lev-burgundy rounded-full animate-spin" />
+          <div className="flex flex-col items-center gap-[1vh]">
+            <h2 className="text-lev-burgundy font-black text-[5vmin] animate-pulse tracking-tight">טוען מערכת...</h2>
+            <p className="text-lev-burgundy/60 font-bold text-[3vmin] italic">לב חב"ד - תמיד כאן בשבילכם</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const data = todayItems.length > 0
+    ? todayItems[safeIndex]
     : {
-        ...EMPTY_SLIDE_DATA,
-        title: settings.defaultSlideTitle || EMPTY_SLIDE_DATA.title,
-        mainName: settings.defaultSlideMainName || EMPTY_SLIDE_DATA.mainName,
-        subText: settings.defaultSlideSubText || EMPTY_SLIDE_DATA.subText,
-        footerText: settings.defaultSlideFooterText || EMPTY_SLIDE_DATA.footerText,
-      };
+      ...EMPTY_SLIDE_DATA,
+      title: settings.defaultSlideTitle || EMPTY_SLIDE_DATA.title,
+      mainName: settings.defaultSlideMainName || EMPTY_SLIDE_DATA.mainName,
+      subText: settings.defaultSlideSubText || EMPTY_SLIDE_DATA.subText,
+      footerText: settings.defaultSlideFooterText || EMPTY_SLIDE_DATA.footerText,
+    };
 
   return (
-    <div className="min-h-screen h-[100dvh] w-full bg-lev-yellow relative flex flex-col overflow-hidden bg-[radial-gradient(circle_at_center,_#FDCF41_0%,_#fbbd08_100%)] select-none">
-      
-      {/* 1. Kiosk Header */}
-      <header className="w-full flex justify-between items-center px-4 md:px-12 py-3 md:py-6 z-50 shrink-0">
-        
-        {/* Left Side: בס"ד and Controls */}
-        <div className="flex items-center gap-4">
-          <div className="text-lev-burgundy font-black text-lg md:text-3xl opacity-80 whitespace-nowrap">בס"ד</div>
-          <div className="flex gap-1 md:gap-2">
-            <button 
-              onClick={toggleFullscreen} 
-              title={isFullscreen ? "צא ממסך מלא" : "מסך מלא"}
-              className="p-2 md:p-3 bg-white/30 hover:bg-white/60 rounded-full transition-all opacity-40 hover:opacity-100"
+    <div className="h-[100dvh] w-full bg-lev-yellow relative flex flex-col overflow-hidden bg-[radial-gradient(circle_at_center,_#FDCF41_0%,_#fbbd08_100%)] select-none">
+
+      {/* 1. Header: Fixed-none, VH-based padding */}
+      <header className="flex-none w-full flex justify-between items-center px-[4vw] py-[2vh] z-50">
+        <div className="flex items-center gap-[2vw]">
+          <div className="text-lev-burgundy font-black text-[3vmin] opacity-80 whitespace-nowrap">בס"ד</div>
+          <div className="flex gap-[1vw]">
+            <button
+              onClick={toggleFullscreen}
+              className="p-[1vh] bg-white/30 hover:bg-white/60 rounded-full transition-all opacity-40 hover:opacity-100"
             >
-              {isFullscreen ? <Minimize size={18} className="text-lev-burgundy md:w-6 md:h-6" /> : <Maximize size={18} className="text-lev-burgundy md:w-6 md:h-6" />}
+              {isFullscreen ? <Minimize className="text-lev-burgundy w-[3vh] h-[3vh]" /> : <Maximize className="text-lev-burgundy w-[3vh] h-[3vh]" />}
             </button>
-            <button 
-              onClick={() => navigate("/login")} 
-              title="ניהול מערכת"
-              className="p-2 md:p-3 bg-white/30 hover:bg-white/60 rounded-full transition-all opacity-40 hover:opacity-100"
+            <button
+              onClick={() => navigate("/login")}
+              className="p-[1vh] bg-white/30 hover:bg-white/60 rounded-full transition-all opacity-40 hover:opacity-100"
             >
-              <Lock size={18} className="text-lev-burgundy md:w-6 md:h-6" />
+              <Lock className="text-lev-burgundy w-[3vh] h-[3vh]" />
             </button>
           </div>
         </div>
 
-        {/* Right Side: Today's Hebrew Date */}
-        <div className="bg-white/20 backdrop-blur-sm px-3 py-1 md:px-6 md:py-2 rounded-full border border-white/30 shadow-sm max-w-[50%] md:max-w-none">
-          <span className="text-xs md:text-xl lg:text-2xl font-black text-lev-burgundy opacity-90 truncate block">{hebrewDate}</span>
+        <div className="bg-white/20 backdrop-blur-sm px-[3vw] py-[1vh] rounded-full border border-white/30 shadow-sm">
+          <span className="text-[2.5vmin] font-black text-lev-burgundy opacity-90 truncate block">{hebrewDate}</span>
         </div>
       </header>
 
-      {/* 2. Main Slide Area - Optimized for viewport constraints */}
-      <main className="flex-1 flex items-center justify-center px-2 md:px-12 lg:px-20 overflow-hidden min-h-0">
-        <div className="w-full h-full max-w-7xl flex items-center justify-center p-2 md:p-4">
+      {/* 2. Main Stage: flex-1, min-h-0 */}
+      <main className="flex-1 min-h-0 relative z-0 flex items-center justify-center p-[2vh]">
+        <div className="w-full h-full max-w-[95vw] flex items-center justify-center">
           <SlideCard data={data} fade={fade} />
         </div>
       </main>
 
-      {/* 3. Kiosk Footer - Ultra Responsive */}
-      <footer className="w-full bg-white/95 backdrop-blur-md border-t-2 border-lev-burgundy/10 shadow-[0_-10px_40px_rgba(0,0,0,0.08)] z-50 px-4 md:px-16 py-3 md:py-6 flex items-center justify-between shrink-0 gap-2 relative">
-        
-        {/* Contact Info */}
-        <div className="flex flex-col gap-0.5 md:gap-2 flex-1 z-10">
+      {/* 3. Footer: Fixed-none, 15vh height */}
+      <footer className="flex-none h-[15vh] w-full bg-white/95 backdrop-blur-md border-t-2 border-lev-burgundy/10 shadow-[0_-10px_40px_rgba(0,0,0,0.08)] z-50 px-[4vw] py-[2vh] flex items-center justify-between gap-[2vw] relative">
+
+        <div className="flex flex-col justify-center gap-[0.5vh] flex-1 z-10 h-full">
           {settings.contactPhone && (
-            <div className="flex items-center gap-2 md:gap-4">
-              <Phone className="w-4 h-4 md:w-8 md:h-8 lg:w-10 lg:h-10 text-lev-burgundy shrink-0" />
-              <span className="text-sm md:text-3xl lg:text-5xl font-black text-gray-800 font-mono tracking-tighter whitespace-nowrap">{settings.contactPhone}</span>
+            <div className="flex items-center gap-[1.5vw]">
+              <Phone className="w-[3.5vmin] h-[3.5vmin] text-lev-burgundy shrink-0" />
+              <span className="text-[3.5vmin] font-black text-gray-800 font-mono tracking-tighter whitespace-nowrap leading-none">{settings.contactPhone}</span>
             </div>
           )}
           {settings.contactEmail && (
-            <div className="flex items-center gap-4 opacity-70">
-              <Mail className="w-3 h-3 md:w-6 md:h-6 lg:w-8 lg:h-8 text-lev-burgundy shrink-0" />
-              <span className="text-[10px] md:text-xl lg:text-2xl font-bold truncate">{settings.contactEmail}</span>
+            <div className="flex items-center gap-[1.5vw]">
+              <Mail className="w-[2.5vmin] h-[2.5vmin] text-lev-burgundy shrink-0" />
+              <span className="text-[2.5vmin] font-bold truncate leading-none text-gray-700">{settings.contactEmail}</span>
             </div>
           )}
         </div>
 
-        {/* Center Branding - Absolute for true centering */}
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none z-0 px-2">
-          <h2 className="text-lev-burgundy font-black text-[10px] sm:text-lg xl:text-2xl opacity-10 md:opacity-25 italic whitespace-nowrap">לב חב"ד - תמיד כאן בשבילכם</h2>
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none z-0">
+          <h2 className="text-lev-burgundy font-black text-[2.5vmin] opacity-20 italic whitespace-nowrap">לב חב"ד - תמיד כאן בשבילכם</h2>
         </div>
 
-        {/* QR Code Section */}
         {settings.donationUrl && (
-          <div className="flex items-center gap-2 md:gap-6 bg-lev-yellow/5 p-1 md:p-3 rounded-2xl md:rounded-3xl border border-lev-burgundy/5 shadow-inner z-10">
-            <span className="hidden sm:block text-right text-[10px] md:text-lg font-black text-lev-burgundy leading-tight">
-              רוצים לתרום?<br/>סרקו אותי 🙂
+          <div className="flex items-center gap-[1.5vw] bg-lev-yellow/5 p-[1vh] rounded-[2vh] border border-lev-burgundy/5 shadow-inner z-10 h-[90%]">
+            <span className="hidden sm:block text-right text-[1.8vmin] font-black text-lev-burgundy leading-tight">
+              רוצים לתרום?<br />סרקו אותי 🙂
             </span>
-            <div className="bg-white p-1 md:p-2 rounded-lg md:rounded-2xl shadow-md border border-gray-100">
-              <QRCode value={settings.donationUrl} size={128} className="w-10 h-10 md:w-24 md:h-24 lg:w-32 lg:h-32" />
+            <div className="bg-white p-[0.5vh] rounded-[1.5vh] shadow-md border border-gray-100 h-full aspect-square flex items-center justify-center">
+              <QRCode value={settings.donationUrl} size={256} className="w-full h-full" />
             </div>
           </div>
         )}

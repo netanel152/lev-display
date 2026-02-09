@@ -146,7 +146,7 @@ const AdminItemForm = ({ onClose, onSave, initialData, isEditing }) => {
       />
 
       <div
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200"
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200 font-admin"
         onClick={(e) => {
           if (e.target === e.currentTarget) onClose();
         }}
@@ -176,29 +176,29 @@ const AdminItemForm = ({ onClose, onSave, initialData, isEditing }) => {
               {/* Left Column (Desktop) - Details */}
               <div className="space-y-6">
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                  <label className="block text-base font-bold text-gray-900 mb-2">
                     סוג אירוע
                   </label>
                   <select
-                    className="w-full p-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-lev-blue/20 focus:border-lev-blue outline-none transition-all cursor-pointer"
+                    className="w-full p-4 bg-gray-50 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-lev-blue/10 focus:border-lev-blue outline-none transition-all cursor-pointer font-medium text-gray-800"
                     value={formData.type}
                     onChange={(e) => handleChange("type", e.target.value)}
                   >
-                    <option value="memorial">לזיכרון (נר)</option>
-                    <option value="birthday">יום הולדת (בלונים)</option>
-                    <option value="healing">לרפואה (דופק)</option>
-                    <option value="success">להצלחה (כוכב)</option>
+                    <option value="memorial">לזיכרון</option>
+                    <option value="birthday">יום הולדת</option>
+                    <option value="healing">לרפואה</option>
+                    <option value="success">להצלחה</option>
                   </select>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">
+                    <label className="block text-base font-bold text-gray-900 mb-2">
                       תאריך לועזי (ידני)
                     </label>
                     <input
                       type="date"
-                      className="w-full p-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-lev-blue/20 focus:border-lev-blue outline-none transition-all cursor-pointer"
+                      className="w-full p-4 bg-gray-50 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-lev-blue/10 focus:border-lev-blue outline-none transition-all cursor-pointer font-medium text-gray-800"
                       value={formData.gregorianDateString}
                       onChange={(e) =>
                         handleChange("gregorianDateString", e.target.value)
@@ -206,11 +206,11 @@ const AdminItemForm = ({ onClose, onSave, initialData, isEditing }) => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">
+                    <label className="block text-base font-bold text-gray-900 mb-2">
                       משך תצוגה
                     </label>
                     <select
-                      className="w-full p-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-lev-blue/20 focus:border-lev-blue outline-none transition-all cursor-pointer"
+                      className="w-full p-4 bg-gray-50 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-lev-blue/10 focus:border-lev-blue outline-none transition-all cursor-pointer font-medium text-gray-800"
                       value={formData.displayDuration}
                       onChange={(e) =>
                         handleChange("displayDuration", e.target.value)
@@ -227,14 +227,14 @@ const AdminItemForm = ({ onClose, onSave, initialData, isEditing }) => {
                 </div>
 
                 {/* Date Picker */}
-                <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
-                  <label className="block text-sm font-bold text-gray-700 mb-3">
+                <div className="bg-gray-50 p-6 rounded-2xl border-2 border-gray-200">
+                  <label className="block text-base font-bold text-gray-900 mb-3">
                     תאריך האירוע (עברי)
                   </label>
                   <div className="flex gap-3">
                     <div className="w-1/4">
                       <select
-                        className="w-full p-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-lev-blue/20 outline-none text-center"
+                        className="w-full p-3.5 bg-white border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-lev-blue/10 outline-none text-center font-bold text-gray-800"
                         value={hDay}
                         onChange={(e) => setHDay(e.target.value)}
                         required
@@ -249,7 +249,7 @@ const AdminItemForm = ({ onClose, onSave, initialData, isEditing }) => {
                     </div>
                     <div className="w-1/3">
                       <select
-                        className="w-full p-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-lev-blue/20 outline-none text-center"
+                        className="w-full p-3.5 bg-white border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-lev-blue/10 outline-none text-center font-bold text-gray-800"
                         value={hMonth}
                         onChange={(e) => setHMonth(e.target.value)}
                         required
@@ -264,7 +264,7 @@ const AdminItemForm = ({ onClose, onSave, initialData, isEditing }) => {
                     </div>
                     <div className="flex-1">
                       <select
-                        className="w-full p-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-lev-blue/20 outline-none text-center"
+                        className="w-full p-3.5 bg-white border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-lev-blue/10 outline-none text-center font-bold text-gray-800"
                         value={hYear}
                         onChange={(e) => setHYear(e.target.value)}
                         required
@@ -279,7 +279,7 @@ const AdminItemForm = ({ onClose, onSave, initialData, isEditing }) => {
                     </div>
                   </div>
                   {formData.hebrewDate && (
-                    <p className="text-sm text-lev-blue font-medium mt-3 text-center bg-blue-50 py-1 rounded">
+                    <p className="text-lg text-lev-blue font-bold mt-4 text-center bg-blue-100/50 py-2 rounded-xl border border-blue-200">
                       {formData.hebrewDate}
                     </p>
                   )}
@@ -287,12 +287,12 @@ const AdminItemForm = ({ onClose, onSave, initialData, isEditing }) => {
 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">
+                    <label className="block text-base font-bold text-gray-900 mb-2">
                       שם מלא (להצגה בגדול)
                     </label>
                     <input
                       required
-                      className="w-full p-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-lev-blue/20 focus:border-lev-blue outline-none transition-all placeholder:text-gray-400"
+                      className="w-full p-4 bg-gray-50 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-lev-blue/10 focus:border-lev-blue outline-none transition-all placeholder:text-gray-400 font-bold text-gray-800 text-lg"
                       value={formData.mainName}
                       onChange={(e) => handleChange("mainName", e.target.value)}
                       placeholder="למשל: מנחם מענדל כהן"
@@ -300,11 +300,11 @@ const AdminItemForm = ({ onClose, onSave, initialData, isEditing }) => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">
+                    <label className="block text-base font-bold text-gray-900 mb-2">
                       טקסט נוסף (מתחת לשם)
                     </label>
                     <input
-                      className="w-full p-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-lev-blue/20 focus:border-lev-blue outline-none transition-all placeholder:text-gray-400"
+                      className="w-full p-4 bg-gray-50 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-lev-blue/10 focus:border-lev-blue outline-none transition-all placeholder:text-gray-400 font-medium text-gray-800"
                       value={formData.subText}
                       onChange={(e) => handleChange("subText", e.target.value)}
                       placeholder="למשל: בן הרב פלוני ז”ל"
@@ -318,20 +318,7 @@ const AdminItemForm = ({ onClose, onSave, initialData, isEditing }) => {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-base font-bold text-gray-700 mb-2">
-                      כותרת עליונה (מופיע בחלק העליון של השקופית)
-                    </label>
-                    <input
-                      className="w-full p-4 md:p-5 bg-gray-50 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-lev-blue/10 focus:border-lev-blue outline-none transition-all text-lg font-medium placeholder:text-gray-300"
-                      value={formData.footerText}
-                      onChange={(e) =>
-                        handleChange("footerText", e.target.value)
-                      }
-                      placeholder="למשל: לב חב״ד מאחלים"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-base font-bold text-gray-700 mb-2">
-                      כותרת ההקדשה (מעל השם המרכזי)
+                      כותרת ההקדשה (למשל: לעילוי נשמת / לרפואת)
                     </label>
                     <input
                       className="w-full p-4 md:p-5 bg-gray-50 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-lev-blue/10 focus:border-lev-blue outline-none transition-all text-lg font-medium placeholder:text-gray-300"
@@ -340,21 +327,34 @@ const AdminItemForm = ({ onClose, onSave, initialData, isEditing }) => {
                       placeholder="למשל: לעילוי נשמת / לרפואת"
                     />
                   </div>
+                  <div>
+                    <label className="block text-base font-bold text-gray-700 mb-2">
+                      טקסט תחתון (מופיע בתחתית השקופית)
+                    </label>
+                    <input
+                      className="w-full p-4 md:p-5 bg-gray-50 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-lev-blue/10 focus:border-lev-blue outline-none transition-all text-lg font-medium placeholder:text-gray-300"
+                      value={formData.footerText}
+                      onChange={(e) =>
+                        handleChange("footerText", e.target.value)
+                      }
+                      placeholder="למשל: מאחלים לב חב״ד"
+                    />
+                  </div>
                 </div>
 
-                <div className="bg-gray-50 p-6 rounded-3xl border-2 border-gray-200 border-dashed">
-                  <h3 className="text-md font-bold text-gray-800 mb-4 flex items-center gap-2">
-                    <ImageIcon size={18} className="text-lev-blue" />
+                <div className="bg-blue-50/30 p-6 rounded-3xl border-2 border-lev-blue/20 border-dashed">
+                  <h3 className="text-lg font-bold text-lev-blue mb-4 flex items-center gap-2">
+                    <ImageIcon size={20} />
                     מיתוג תורם (אופציונלי)
                   </h3>
 
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-xs font-bold text-gray-500 mb-1">
+                      <label className="block text-sm font-bold text-gray-900 mb-1">
                         שם התורם / הקדשה
                       </label>
                       <input
-                        className="w-full p-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-lev-blue/20 outline-none"
+                        className="w-full p-3.5 bg-white border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-lev-blue/10 outline-none font-bold text-gray-800"
                         value={formData.donorName}
                         onChange={(e) =>
                           handleChange("donorName", e.target.value)
@@ -364,21 +364,21 @@ const AdminItemForm = ({ onClose, onSave, initialData, isEditing }) => {
                     </div>
 
                     <div>
-                      <label className="block text-xs font-bold text-gray-500 mb-1">
+                      <label className="block text-sm font-bold text-gray-900 mb-1">
                         לוגו (קובץ או קישור)
                       </label>
                       <div className="flex gap-3 items-start">
                         <div className="flex-1">
                           <input
-                            className="w-full p-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-lev-blue/20 outline-none text-left ltr text-sm mb-2"
+                            className="w-full p-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-lev-blue/20 outline-none text-left ltr text-sm mb-2 font-mono"
                             value={formData.donorLogo}
                             onChange={(e) =>
                               handleChange("donorLogo", e.target.value)
                             }
                             placeholder="https://..."
                           />
-                          <label className="cursor-pointer bg-white border border-gray-200 hover:bg-gray-50 text-gray-600 px-4 py-2.5 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition w-full">
-                            <ImageIcon size={16} />
+                          <label className="cursor-pointer bg-white border-2 border-gray-200 hover:bg-gray-50 text-gray-900 px-4 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition w-full shadow-sm">
+                            <ImageIcon size={18} />
                             בחר קובץ תמונה
                             <input
                               type="file"
@@ -389,7 +389,7 @@ const AdminItemForm = ({ onClose, onSave, initialData, isEditing }) => {
                           </label>
                         </div>
 
-                        <div className="w-20 h-20 bg-white rounded-lg border border-gray-200 flex items-center justify-center p-2 overflow-hidden shrink-0">
+                        <div className="w-24 h-24 bg-white rounded-xl border-2 border-gray-200 flex items-center justify-center p-2 overflow-hidden shrink-0 shadow-inner">
                           {formData.donorLogo ? (
                             <img
                               src={formData.donorLogo}
@@ -397,7 +397,7 @@ const AdminItemForm = ({ onClose, onSave, initialData, isEditing }) => {
                               className="w-full h-full object-contain"
                             />
                           ) : (
-                            <span className="text-xs text-gray-300 text-center">
+                            <span className="text-xs text-gray-400 text-center font-bold">
                               אין לוגו
                             </span>
                           )}
