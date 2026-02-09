@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Minimize, Maximize, Lock, Phone, Mail } from "lucide-react";
+import { Minimize, Maximize, Lock, Phone, Mail, WifiOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import QRCode from "react-qr-code";
 import { getTodayHebrewDate, getCurrentHoliday, isSameHebrewDayAndMonth } from "../utils/hebrewDate";
@@ -15,6 +15,7 @@ const DisplayPage = () => {
   const [hebrewDate, setHebrewDate] = useState(getTodayHebrewDate());
   const wakeLock = useRef(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [settings, setSettings] = useState({
     slideDuration: DEFAULT_SLIDE_DURATION,
     donationUrl: "",
@@ -28,6 +29,19 @@ const DisplayPage = () => {
       if (newSettings) setSettings(prev => ({ ...prev, ...newSettings }));
     });
     return () => { unsubscribeItems(); unsubscribeSettings(); };
+  }, []);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
   }, []);
 
   useEffect(() => {
@@ -55,7 +69,7 @@ const DisplayPage = () => {
   };
 
   const currentHoliday = getCurrentHoliday();
-  
+
   const todayItems = (items || []).filter(item => {
     const now = new Date();
     const todayGregorian = now.toLocaleDateString('en-CA');
@@ -132,8 +146,21 @@ const DisplayPage = () => {
           </div>
         </div>
 
-        <div className="bg-white/20 backdrop-blur-sm px-[3vw] py-[1vh] rounded-full border border-white/30 shadow-sm">
-          <span className="text-[2.5vmin] font-black text-lev-burgundy opacity-90 truncate block">{hebrewDate}</span>
+        <div className="flex items-center gap-[1.5vw]">
+          {!isOnline && (
+            <div className="bg-white/90 backdrop-blur-xl border border-red-100 px-3 py-1.5 rounded-full shadow-sm flex items-center gap-2 animate-in zoom-in duration-300">
+              <div className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+              </div>
+              <WifiOff size={14} className="text-red-500" />
+              <span className="text-[1.6vmin] font-black text-red-600 tracking-tight" dir="rtl">מצב ללא רשת</span>
+            </div>
+          )}
+
+          <div className="bg-white/20 backdrop-blur-sm px-[3vw] py-[1vh] rounded-full border border-white/30 shadow-sm">
+            <span className="text-[2.5vmin] font-black text-lev-burgundy opacity-90 truncate block">{hebrewDate}</span>
+          </div>
         </div>
       </header>
 
@@ -169,7 +196,7 @@ const DisplayPage = () => {
         {settings.donationUrl && (
           <div className="flex items-center gap-[1.5vw] bg-lev-yellow/5 p-[1vh] rounded-[2vh] border border-lev-burgundy/5 shadow-inner z-10 h-[90%]">
             <span className="hidden sm:block text-right text-[1.8vmin] font-black text-lev-burgundy leading-tight">
-              רוצים לתרום?<br />סרקו אותי 🙂
+              רוצים לתרום?<br />סרקו אותי ❤️
             </span>
             <div className="bg-white p-[0.5vh] rounded-[1.5vh] shadow-md border border-gray-100 h-full aspect-square flex items-center justify-center">
               <QRCode value={settings.donationUrl} size={256} className="w-full h-full" />

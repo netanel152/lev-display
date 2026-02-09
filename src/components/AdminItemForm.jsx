@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ImageIcon, X } from "lucide-react";
+import { ImageIcon, X, Trash2 } from "lucide-react";
 import PreviewModal from "./PreviewModal";
 import {
   HEBREW_DAYS,
@@ -107,15 +107,82 @@ const AdminItemForm = ({ onClose, onSave, initialData, isEditing }) => {
     });
   };
 
-  const handleFileChange = (e) => {
+  const compressImage = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target.result;
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          let width = img.width;
+          let height = img.height;
+          
+          // Increased size for higher quality on high-res displays
+          const MAX_SIZE = 1024;
+
+          if (width > height) {
+            if (width > MAX_SIZE) {
+              height *= MAX_SIZE / width;
+              width = MAX_SIZE;
+            }
+          } else {
+            if (height > MAX_SIZE) {
+              width *= MAX_SIZE / height;
+              height = MAX_SIZE;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          
+          // Ensure smooth scaling
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
+          
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // Best Practice for Logos: 
+          // 1. If the source is PNG, keep it PNG to preserve transparency (alpha channel).
+          // 2. If it's a photo (JPEG/other), use high-quality JPEG.
+          let compressedBase64;
+          if (file.type === "image/png" || file.type === "image/svg+xml") {
+            compressedBase64 = canvas.toDataURL("image/png");
+            
+            // Safety check: If PNG is still too large (> 800KB), convert to high-quality JPEG
+            if (compressedBase64.length > 800000) {
+              compressedBase64 = canvas.toDataURL("image/jpeg", 0.9);
+            }
+          } else {
+            // Increased quality to 0.9 for better sharpness and fewer artifacts
+            compressedBase64 = canvas.toDataURL("image/jpeg", 0.9);
+          }
+          
+          resolve(compressedBase64);
+        };
+        img.onerror = (err) => reject(err);
+      };
+      reader.onerror = (err) => reject(err);
+    });
+  };
+
+  const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      setImageFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        handleChange("donorLogo", reader.result);
-      };
-      reader.readAsDataURL(file);
+      try {
+        const compressedBase64 = await compressImage(file);
+        handleChange("donorLogo", compressedBase64);
+        setImageFile(file);
+      } catch (error) {
+        console.error("Compression error:", error);
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          handleChange("donorLogo", reader.result);
+        };
+        reader.readAsDataURL(file);
+      }
     }
   };
 
@@ -389,17 +456,32 @@ const AdminItemForm = ({ onClose, onSave, initialData, isEditing }) => {
                           </label>
                         </div>
 
-                        <div className="w-24 h-24 bg-white rounded-xl border-2 border-gray-200 flex items-center justify-center p-2 overflow-hidden shrink-0 shadow-inner">
-                          {formData.donorLogo ? (
-                            <img
-                              src={formData.donorLogo}
-                              alt="Preview"
-                              className="w-full h-full object-contain"
-                            />
-                          ) : (
-                            <span className="text-xs text-gray-400 text-center font-bold">
-                              אין לוגו
-                            </span>
+                        <div className="relative group">
+                          <div className="w-24 h-24 bg-white rounded-xl border-2 border-gray-200 flex items-center justify-center p-2 overflow-hidden shrink-0 shadow-inner">
+                            {formData.donorLogo ? (
+                              <img
+                                src={formData.donorLogo}
+                                alt="Preview"
+                                className="w-full h-full object-contain"
+                              />
+                            ) : (
+                              <span className="text-xs text-gray-400 text-center font-bold">
+                                אין לוגו
+                              </span>
+                            )}
+                          </div>
+                          {formData.donorLogo && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                handleChange("donorLogo", "");
+                                setImageFile(null);
+                              }}
+                              className="absolute -top-2 -left-2 bg-red-500 text-white p-1.5 rounded-full shadow-lg hover:bg-red-600 transition-transform hover:scale-110 z-10"
+                              title="הסר לוגו"
+                            >
+                              <Trash2 size={14} />
+                            </button>
                           )}
                         </div>
                       </div>

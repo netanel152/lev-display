@@ -6,15 +6,18 @@ A dynamic digital display system built for "Lev Chabad" to show memorial, birthd
 
 -   **Dynamic Slideshow**: Automatically rotates through dedications with smooth fade transitions.
 -   **Smart Scheduling**: Shows specific slides based on Gregorian or Hebrew dates.
--   **Themes**: Distinct visual themes for Memorial (Candle), Birthday (Balloons), and Healing (Pulse).
+-   **Themes**: Distinct visual themes for Memorial, Birthday, Healing, Success, and Holidays with unique icons and color schemes.
 -   **Admin Interface**: Password-protected area to add, edit, and delete slides.
 -   **Customizable Default Slide**: Configure the welcome screen (title, name, description) directly from the admin settings when no dedications are scheduled.
 -   **Live Preview**: Instantly preview how a dedication will look on the display before saving.
+-   **High-Performance Image Compression**: Automatic client-side compression (1024px, 90% quality) with PNG transparency support to ensure Firestore document stability.
+-   **Kiosk Stability**: Built-in Error Boundary that automatically reloads the page after a crash to ensure 24/7 operation.
+-   **Offline Monitoring**: Real-time connectivity tracking with a discrete status indicator in the header.
 -   **Service Layer Pattern**: Seamlessly switch between local storage (Mock) and Firebase Firestore/Storage.
 -   **Hebrew Date Integration**: Displays the current Hebrew date automatically using `@hebcal/core`.
 -   **Responsive Layout**: Optimized for fixed screens with vertical centering and safe scrolling.
 -   **Wake Lock Support**: Prevents the screen from sleeping while in display mode.
--   **Accessibility & UX**: Includes tooltips for control buttons and clear category headers in the admin panel.
+-   **Accessibility & UX**: Includes clear category headers, intuitive controls, and smart image management in the admin panel.
 
 ## 🛠️ Tech Stack
 
@@ -23,6 +26,7 @@ A dynamic digital display system built for "Lev Chabad" to show memorial, birthd
 -   **Build Tool**: Vite 7
 -   **Styling**: Tailwind CSS 4
 -   **Icons**: Lucide-React
+-   **QR Codes**: React QR Code
 -   **Notifications**: React Hot Toast
 -   **Backend**: Firebase (Firestore & Storage) or LocalStorage (Mock)
 
@@ -111,17 +115,25 @@ The application uses **React Router 7** for navigation:
 ```
 src/
 ├── assets/             # Static assets (logos, icons)
-├── components/         # Reusable UI components (Modals, Cards, Forms)
+├── components/         # Reusable UI components
+│   ├── AdminItemForm.jsx  # Form with image compression
+│   ├── ConfirmModal.jsx   # Generic confirmation dialog
+│   ├── ErrorBoundary.jsx  # Auto-reload stability wrapper
+│   ├── PreviewModal.jsx   # Live preview of a slide
+│   └── SlideCard.jsx      # The visual representation of a slide
 ├── lib/                # Library initializations (Firebase)
-├── pages/              # Main route pages (Display, Admin, Login)
+├── pages/              # Main route pages
+│   ├── AdminPage.jsx      # Slide management dashboard
+│   ├── DisplayPage.jsx    # The public slideshow
+│   └── LoginPage.jsx      # Admin login
 ├── services/           # Data & Auth Service Layer
 │   ├── dataService.js     # Switcher (Mock <-> Firebase)
 │   ├── mockService.js     # LocalStorage implementation
 │   ├── firebaseService.js # Firebase implementation
 │   └── authService.js     # Authentication logic
 ├── utils/              # Helper functions
-│   ├── hebrewDate.js      # Hebrew calendar logic
-│   ├── slideUtils.jsx     # Slide filtering & sorting logic
+│   ├── hebrewDate.js      # Hebrew calendar & holiday logic
+│   ├── slideUtils.jsx     # Slide themes & font scaling logic
 │   └── storage.js         # LocalStorage wrappers
 ├── constants.js        # Global configurations & Mock data
 └── App.jsx             # Main application entry and routing
