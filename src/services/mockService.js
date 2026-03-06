@@ -1,4 +1,4 @@
-import { STORAGE_KEYS, MOCK_DATA } from "../constants";
+import { STORAGE_KEYS, MOCK_DATA, DEFAULT_SETTINGS } from "../constants";
 import { safeJSONParse } from "../utils/storage";
 
 const getItems = () => {
@@ -87,14 +87,6 @@ export const deleteItem = async (id) => {
     console.error("Error deleting mock item:", error);
     throw error;
   }
-};
-
-// Updated default settings to include mock contact info
-const DEFAULT_SETTINGS = {
-  slideDuration: 5000,
-  donationUrl: "https://www.levchabad.org/donate",
-  contactPhone: "050-7690577",
-  contactEmail: "office@LevChabad.org.il"
 };
 
 const getSettings = () => {

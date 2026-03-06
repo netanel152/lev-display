@@ -11,98 +11,79 @@ export const THEME_COLORS = {
   MEMORIAL: "text-amber-800",
   BIRTHDAY: "text-pink-600",
   HEALING: "text-green-600",
-  SUCCESS: "text-blue-600", // Added for consistency
+  SUCCESS: "text-blue-600",
+};
+
+export const FIXED_TITLES = {
+  memorial: "לזכרון ועילוי נשמת",
+  birthday: "בברכת מזל טוב ליום ההולדת",
+  healing: "לרפואת",
+  success: "להצלחה וברכה"
 };
 
 export const MOCK_DATA = [
   {
     id: 1,
     type: "memorial",
-    title: "לעילוי נשמת ולעילוי נשמת",
-    mainName: "אברהם יצחק זערור",
-    subText: 'בן אפרים ושרה ז"ל',
-    hebrewDate: "ט' באדר תשפ\"ו",
-    notes: "נפטר בשיבה טובה",
-    donorName: "משפחת זערור היקרה",
-    donorLogo: null,
+    title: FIXED_TITLES.memorial,
+    mainName: "אברהם יצחק זערור ז\"ל",
+    subText: "בן אפרים ושרה",
+    hebrewDate: "י\"ז באדר תשפ\"ו",
+    donorName: "משפחת זערור",
   },
   {
     id: 2,
     type: "birthday",
-    title: "יום הולדת שמח ומאושר ל...",
+    title: FIXED_TITLES.birthday,
     mainName: "חיה מושקא",
     subText: "עד מאה ועשרים כעשרים!",
+    hebrewDate: "י\"ז באדר תשפ\"ו",
     footerText: 'באהבה ממשפחת לב חב"ד',
-    donorName: null,
-    donorLogo: "https://upload.wikimedia.org/wikipedia/commons/a/a7/React-icon.svg",
   },
   {
     id: 3,
     type: "healing",
-    title: "נא להתפלל לרפואתו השלמה של",
+    title: FIXED_TITLES.healing,
     mainName: "ישראל מאיר בן רבקה רחל",
     subText: "בתוך שאר חולי ישראל",
+    hebrewDate: "י\"ז באדר תשפ\"ו",
     footerText: 'קפיטריית החסד לב חב"ד',
     donorName: "מתנת אנונימי",
-    donorLogo: null,
   },
   {
     id: 4,
     type: "success",
-    title: "להצלחה מרובה בכל מעשי ידיו",
-    mainName: "משה",
-    subText: "בגשמיות וברוחניות",
+    title: FIXED_TITLES.success,
+    mainName: "משפחת לוי",
+    subText: "בכל מעשי ידיהם",
     footerText: 'מברכים בחום, החברים',
-    donorName: "קבוצת חברים",
-    donorLogo: null,
   },
   {
     id: 5,
     type: "memorial",
-    title: "מוקדש לזכרו הטהור של",
+    title: FIXED_TITLES.memorial,
     mainName: "הרב לוי יצחק שניאורסון",
     subText: "אביו של הרבי מליובאוויטש",
     hebrewDate: "כ' באב",
-    footerText: "",
-    donorName: null,
-    donorLogo: null,
   }
 ];
 
 export const EMPTY_SLIDE_DATA = {
-
   id: 'empty',
-
-  type: 'memorial',
-
-  footerText: 'ברוכים הבאים ללב חב"ד',
-
-  title: 'הכתובת שלך במרכז הרפואי',
-
+  type: 'success', 
+  title: 'ברוכים הבאים',
   mainName: 'לב חב"ד',
-
-  subText: 'כאן בשבילכם תמיד',
-
+  subText: 'הכתובת שלכם במרכז הרפואי',
+  footerText: 'תמיד כאן בשבילכם',
 };
 
-
-
 export const DEFAULT_SETTINGS = {
-
   slideDuration: DEFAULT_SLIDE_DURATION,
-
-  donationUrl: "",
-
-  contactPhone: "",
-
-  contactEmail: "",
-
+  donationUrl: "https://www.levchabad.org/donate",
+  contactPhone: "050-7690577",
+  contactEmail: "office@LevChabad.org.il",
   defaultSlideTitle: EMPTY_SLIDE_DATA.title,
-
   defaultSlideMainName: EMPTY_SLIDE_DATA.mainName,
-
   defaultSlideSubText: EMPTY_SLIDE_DATA.subText,
-
   defaultSlideFooterText: EMPTY_SLIDE_DATA.footerText,
-
 };

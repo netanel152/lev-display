@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import {
   Plus, LogOut, Flame, HeartPulse, Cake, Star, Settings,
-  Pencil, Trash2, Search, Save, MonitorPlay, HandHeart, StickyNote
+  Pencil, Trash2, Search, Save, MonitorPlay, HandHeart, StickyNote, RotateCcw
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
@@ -13,6 +13,7 @@ import AdminItemForm from "../components/AdminItemForm";
 
 const AdminPage = () => {
   const navigate = useNavigate();
+  const isMockMode = import.meta.env.VITE_USE_MOCK === "true";
 
   const [items, setItems] = useState([]);
   const [globalSettings, setGlobalSettings] = useState({ ...DEFAULT_SETTINGS });
@@ -58,6 +59,15 @@ const AdminPage = () => {
       toast.success('הגדרות נשמרו בהצלחה');
     } catch (error) {
       toast.error('שגיאה בשמירת הגדרות');
+    }
+  };
+
+  const resetToDemoData = () => {
+    if (window.confirm('האם אתה בטוח שברצונך לאפס את כל הנתונים לנתוני ההדגמה? כל השינויים שביצעת יימחקו.')) {
+      localStorage.removeItem(STORAGE_KEYS.DISPLAY_ITEMS);
+      localStorage.removeItem(STORAGE_KEYS.APP_SETTINGS);
+      toast.success('הנתונים אופסו. טוען מחדש...');
+      setTimeout(() => window.location.reload(), 1000);
     }
   };
 
@@ -157,11 +167,10 @@ const AdminPage = () => {
           <div className="flex items-center gap-2 md:gap-3">
             <button
               onClick={() => setActiveTab('settings')}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all font-bold text-sm ${
-                activeTab === 'settings' 
-                ? 'bg-gray-800 text-white shadow-md' 
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all font-bold text-sm ${activeTab === 'settings'
+                ? 'bg-gray-800 text-white shadow-md'
                 : 'text-gray-500 hover:bg-gray-100'
-              }`}
+                }`}
             >
               <Settings size={18} />
               <span className="hidden sm:inline">הגדרות</span>
@@ -219,8 +228,20 @@ const AdminPage = () => {
       <main className="flex-1 max-w-7xl mx-auto w-full p-4 md:p-6 pb-20">
         {activeTab === 'settings' ? (
           <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-sm border p-6 md:p-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
-            <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-              <Settings className="text-gray-400" size={20} /> הגדרות כלליות
+            <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Settings className="text-gray-400" size={20} /> הגדרות כלליות
+              </div>
+              {isMockMode && (
+                <button
+                  onClick={resetToDemoData}
+                  className="text-xs flex items-center gap-1 text-gray-400 hover:text-lev-burgundy transition-colors"
+                  title="איפוס נתונים"
+                >
+                  <RotateCcw size={14} />
+                  איפוס לנתוני הדגמה
+                </button>
+              )}
             </h2>
 
             <div className="space-y-6">
@@ -281,7 +302,7 @@ const AdminPage = () => {
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">שם מרכזי</label>
+                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">עבור מי ההקדשה (שם)</label>
                     <input
                       type="text" value={localSettings.defaultSlideMainName}
                       onChange={(e) => handleLocalSettingChange('defaultSlideMainName', e.target.value)}
@@ -297,7 +318,7 @@ const AdminPage = () => {
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">טקסט תחתון (פוטר)</label>
+                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">טקסט תחתון</label>
                     <input
                       type="text" value={localSettings.defaultSlideFooterText}
                       onChange={(e) => handleLocalSettingChange('defaultSlideFooterText', e.target.value)}
