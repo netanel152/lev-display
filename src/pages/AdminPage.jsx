@@ -99,7 +99,10 @@ const AdminPage = () => {
     setIsFormOpen(true);
   };
 
+  const [isSaving, setIsSaving] = useState(false);
+
   const handleSaveItem = async (formData, imageFile) => {
+    setIsSaving(true);
     const finalData = { ...formData };
     if (!editingItem && activeTab !== 'settings') {
       finalData.type = activeTab;
@@ -115,7 +118,10 @@ const AdminPage = () => {
       setIsFormOpen(false);
       setEditingItem(null);
     } catch (error) {
-      toast.error('שגיאה בשמירת הפריט');
+      console.error("Save error:", error);
+      toast.error('שגיאה בשמירת הפריט - ייתכן שהתמונה גדולה מדי');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -149,6 +155,7 @@ const AdminPage = () => {
           key={editingItem ? editingItem.id : 'new'}
           onClose={() => setIsFormOpen(false)}
           onSave={handleSaveItem}
+          isSaving={isSaving}
           initialData={{ ...editingItem, type: editingItem?.type || (activeTab !== 'settings' ? activeTab : 'memorial') }}
           isEditing={!!editingItem}
         />
@@ -280,11 +287,12 @@ const AdminPage = () => {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">קישור לתרומה</label>
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">טקסט ספונסרים / תחתית (מוצג תמיד)</label>
                 <input
-                  type="url" dir="ltr" value={localSettings.donationUrl}
-                  onChange={(e) => handleLocalSettingChange('donationUrl', e.target.value)}
-                  className="w-full p-3 border rounded-xl focus:ring-2 focus:ring-lev-burgundy/10 outline-none font-mono text-sm"
+                  type="text" value={localSettings.sponsorsText}
+                  onChange={(e) => handleLocalSettingChange('sponsorsText', e.target.value)}
+                  className="w-full p-3 border rounded-xl focus:ring-2 focus:ring-lev-burgundy/10 outline-none transition-all"
+                  placeholder="למשל: לב חב״ד - תמיד כאן בשבילכם"
                 />
               </div>
 
@@ -314,14 +322,6 @@ const AdminPage = () => {
                     <input
                       type="text" value={localSettings.defaultSlideSubText}
                       onChange={(e) => handleLocalSettingChange('defaultSlideSubText', e.target.value)}
-                      className="w-full p-3 border rounded-xl focus:ring-2 focus:ring-lev-burgundy/10 outline-none transition-all"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">טקסט תחתון</label>
-                    <input
-                      type="text" value={localSettings.defaultSlideFooterText}
-                      onChange={(e) => handleLocalSettingChange('defaultSlideFooterText', e.target.value)}
                       className="w-full p-3 border rounded-xl focus:ring-2 focus:ring-lev-burgundy/10 outline-none transition-all"
                     />
                   </div>

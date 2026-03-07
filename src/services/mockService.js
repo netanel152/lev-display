@@ -44,7 +44,10 @@ export const addItem = async (item, imageFile) => {
     }
 
     const newId = items.length > 0 ? Math.max(...items.map(i => i.id)) + 1 : 1;
-    const newItem = { ...item, id: newId, donorLogo: imageUrl };
+    const cleanItem = { ...item };
+    if (imageFile) delete cleanItem.donorLogo; // Remove manual base64 if we have a file
+    
+    const newItem = { ...cleanItem, id: newId, donorLogo: imageUrl };
 
     const updatedItems = [...items, newItem];
     saveItems(updatedItems);
@@ -65,12 +68,15 @@ export const updateItem = async (id, data, imageFile) => {
       imageUrl = await convertFileToBase64(imageFile);
     }
 
+    const cleanData = { ...data };
+    if (imageFile) delete cleanData.donorLogo; // Remove manual base64 if we have a file
+
     const updatedItems = items.map(item =>
-      item.id === id ? { ...data, id, donorLogo: imageUrl } : item
+      item.id === id ? { ...cleanData, id, donorLogo: imageUrl } : item
     );
 
     saveItems(updatedItems);
-    return { ...data, id, donorLogo: imageUrl };
+    return { ...cleanData, id, donorLogo: imageUrl };
   } catch (error) {
     console.error("Error updating mock item:", error);
     throw error;

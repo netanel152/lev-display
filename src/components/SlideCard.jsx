@@ -1,4 +1,7 @@
-import logo from "../assets/original-logo.jpg";
+import candleImg from "../assets/candle-real.png";
+import balloonsImg from "../assets/balloons-real.png";
+import stethoscopeImg from "../assets/stethoscope-real.png";
+import starImg from "../assets/star-real.png";
 import { getTheme } from "../utils/slideUtils";
 
 const THEME_CONFIG = {
@@ -49,118 +52,133 @@ const THEME_CONFIG = {
   }
 };
 
-const getMainFontSize = (text) => {
-  const len = text?.length || 0;
-  if (len < 12) return "text-[8vmin]";
-  return "text-[5vmin]";
-};
-
 const SlideCard = ({ data, fade = true }) => {
   const theme = getTheme(data.type, data.mainName);
   const config = THEME_CONFIG[data.type] || THEME_CONFIG.memorial;
   const isMemorial = data.type === 'memorial' && data.id !== 'empty';
+  const isBirthday = data.type === 'birthday';
+  const isHealing = data.type === 'healing';
   const isSuccess = data.type === 'success';
 
-  const displayTitle = isSuccess && data.title && !data.title.includes('להצלחת')
-    ? `להצלחת ${data.title}`
-    : data.title;
+  const dualImageLayoutTypes = ['memorial', 'birthday', 'healing', 'success'];
+  const showTopIcon = data.id !== 'empty' && !dualImageLayoutTypes.includes(data.type);
+
+  // Kiosk-Grade Image Props - ROBUST & SCALABLE
+  const imgProps = {
+    loading: "eager",
+    decoding: "sync",
+    fetchPriority: "high",
+    className: "h-[12vh] md:h-[16vh] max-h-[160px] w-auto object-contain shrink-0 drop-shadow-2xl transition-all duration-700"
+  };
 
   return (
-    <div className={`w-full h-full flex flex-col transition-all duration-700 ease-in-out transform ${fade ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
-      
+    <div className={`w-full h-full max-h-full flex flex-col relative overflow-hidden transition-all duration-700 ease-in-out transform ${fade ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
+
       {/* Outer Glow & Gradient Container */}
-      <div className={`p-[1vh] w-full h-full rounded-[5vh] bg-gradient-to-br ${config.gradient} shadow-[0_2vh_8vh_-2vh] ${config.shadow} transition-all duration-500 overflow-hidden`}>
-        
+      <div className={`p-[1vh] w-full h-full rounded-[3vmin] bg-gradient-to-br ${config.gradient} shadow-[0_2vh_8vh_-2vh] ${config.shadow} transition-all duration-500 overflow-hidden flex flex-col`}>
+
         {/* Inner Card (Glassmorphism) */}
-        <div className={`bg-white/95 backdrop-blur-sm w-full h-full rounded-[4vh] border-[0.3vh] ${config.border} p-[4vh] flex flex-col justify-between relative overflow-hidden`}>
-          
+        <div className={`bg-white/95 backdrop-blur-sm flex-1 rounded-[2.2vmin] border-[0.3vh] ${config.border} p-[3.5vh] pb-[12vh] flex flex-col items-center relative overflow-hidden text-center shadow-inner`}>
+
           {/* Decorative Background Elements */}
-          <div className={`absolute -top-[20vh] -right-[20vh] w-[50vh] h-[50vh] bg-gradient-to-br ${config.gradient} opacity-10 blur-[10vh] rounded-full`} />
-          <div className={`absolute -bottom-[20vh] -left-[20vh] w-[50vh] h-[50vh] bg-gradient-to-br ${config.gradient} opacity-10 blur-[10vh] rounded-full`} />
+          <div className={`absolute -top-[20vh] -right-[20vh] w-[50vh] h-[50vh] bg-gradient-to-br ${config.gradient} opacity-5 blur-[10vh] rounded-full`} />
+          <div className={`absolute -bottom-[20vh] -left-[20vh] w-[50vh] h-[50vh] bg-gradient-to-br ${config.gradient} opacity-5 blur-[10vh] rounded-full`} />
 
-          {/* 1. Top Section: Logo & Icon */}
-          <div className="flex-none flex flex-col items-center gap-[1vh] z-10">
-            <div className="bg-white/50 backdrop-blur-sm p-[1vh] rounded-[2vh] shadow-lg border border-white/40">
-              <img
-                src={logo}
-                alt="לב חב'ד"
-                className="h-[12vh] w-auto object-contain transition-all duration-500 rounded-lg"
-              />
-            </div>
+          {/* MIDDLE STAGE: The "Hero" content area */}
+          <div className="flex-1 flex flex-col items-center justify-center w-full min-h-0 px-[2vw] gap-[min(2.5vh,20px)] z-10">
+
+            {/* Branding Header */}
             {data.id !== 'empty' && (
-              <div className="flex flex-col items-center gap-[0.5vh]">
-                <div className="relative h-[8vh] flex items-center justify-center">
-                  <div className={`absolute inset-0 bg-gradient-to-br ${config.gradient} opacity-30 blur-[4vh] rounded-full animate-pulse scale-150`} />
-                  <div className={`${theme.color} filter drop-shadow-xl transform scale-[1.5] animate-float-pulse`}>
-                    {theme.icon}
-                  </div>
+              <h2 className="text-[clamp(1rem,2.5vmin,1.8rem)] font-black text-lev-burgundy tracking-[0.15em] drop-shadow-sm leading-none uppercase shrink-0">
+                קפיטריית החסד מוקדשת
+              </h2>
+            )}
+
+            {/* Optional Icon (Holiday etc.) */}
+            {data.id !== 'empty' && showTopIcon && (
+              <div className="relative h-[8vh] flex items-center justify-center shrink-0 my-[1vh]">
+                <div className={`absolute inset-0 bg-gradient-to-br ${config.gradient} opacity-20 blur-[4vh] rounded-full animate-pulse scale-150`} />
+                <div className={`${theme.color} filter drop-shadow-xl transform scale-[1.5] animate-float-pulse`}>
+                  {theme.icon}
                 </div>
-                <h2 className="text-lev-burgundy font-bold text-[2.8vmin] tracking-tight drop-shadow-sm whitespace-nowrap">קפיטריית החסד מוקדשת</h2>
+              </div>
+            )}
+
+            {/* Dedication Title */}
+            {data.title && (
+              <div className={`text-[clamp(1.2rem,3.5vmin,2.5rem)] font-bold text-center tracking-[0.05em] uppercase ${config.title} leading-tight text-balance drop-shadow-sm shrink-0`}>
+                {data.title}
+              </div>
+            )}
+
+            {/* Name + Subtext Group for tighter spacing */}
+            <div className="flex flex-col items-center gap-0 w-full shrink-0">
+              {/* Main Name Row - GRID FIX */}
+              <div className="grid grid-cols-[auto_1fr_auto] items-center gap-[2vw] md:gap-[4vw] w-full max-w-[95%] mx-auto min-h-0 shrink-0">
+                <div className="flex justify-center">
+                  {isMemorial && <img src={candleImg} alt="Candle" {...imgProps} />}
+                  {isBirthday && <img src={balloonsImg} alt="Balloons" {...imgProps} />}
+                  {isHealing && <img src={stethoscopeImg} alt="Stethoscope" {...imgProps} />}
+                  {isSuccess && <img src={starImg} alt="Star" {...imgProps} />}
+                </div>
+
+                <h1 className={`text-[clamp(1.5rem,5vmin,5rem)] font-black text-center break-words text-balance leading-[1.1] tracking-tighter drop-shadow-2xl ${config.name}`}>
+                  {data.mainName}
+                </h1>
+
+                <div className="flex justify-center">
+                  {isMemorial && <img src={candleImg} alt="Candle" {...imgProps} />}
+                  {isBirthday && <img src={balloonsImg} alt="Balloons" {...imgProps} />}
+                  {isHealing && <img src={stethoscopeImg} alt="Stethoscope" {...imgProps} />}
+                  {isSuccess && <img src={starImg} alt="Star" {...imgProps} />}
+                </div>
+              </div>
+
+              {/* Sub-Text */}
+              <h3 className={`text-[clamp(1.2rem,4vmin,3rem)] font-bold text-center text-balance px-[2vw] leading-tight text-lev-burgundy/90 w-full break-words drop-shadow-sm shrink-0 ${config.subText}`}>
+                {data.subText}
+              </h3>
+            </div>
+
+            {/* Memorial Date Pill - Anchored to bottom of Middle Stage */}
+            {isMemorial && data.hebrewDate && (
+              <div className="mt-auto mb-[10vh] shrink-0 z-10 text-[clamp(1rem,2.5vmin,2.2rem)] font-black bg-white/40 px-[5vw] py-[0.8vh] rounded-full border-2 border-white/60 shadow-md leading-none text-amber-900 whitespace-nowrap">
+                {data.hebrewDate}
               </div>
             )}
           </div>
 
-          {/* 2. Center Section: Main Content */}
-          <div className="flex-1 flex flex-col items-center justify-center gap-[2vh] z-10 px-[2vw] min-h-0">
-            {displayTitle && (
-              <div className={`text-[3.2vmin] font-bold tracking-[0.1em] uppercase ${config.title} text-center`}>
-                {displayTitle}
+          {/* BOTTOM STAGE */}
+          <div className="absolute bottom-0 left-0 w-full p-[2vh] flex flex-col items-center z-20 pointer-events-none">
+
+            {/* Slide Primary Footer (Only if Memorial) */}
+            {isMemorial && (
+              <div className={`text-[clamp(2rem,6.5vmin,4.5rem)] font-black tracking-[0.3em] pl-[0.3em] whitespace-nowrap drop-shadow-2xl leading-none mb-[1vh] ${config.footer}`}>
+                ת.נ.צ.ב.ה
               </div>
             )}
 
-            <h1 className={`${getMainFontSize(data.mainName)} font-black text-center leading-[1.1] tracking-tight drop-shadow-md break-words w-full ${config.name}`}>
-              {data.mainName}
-            </h1>
+            {/* Donor Branding - Premium Branding Badge */}
+            {(data.donorName || data.donorLogo) && (
+              <div className="w-fit max-w-[90%] bg-white/80 backdrop-blur-xl px-[2.5vw] py-[0.8vh] rounded-[2vmin] border border-white shadow-lg flex items-center gap-[2.5vw] animate-in fade-in slide-in-from-bottom-4 duration-1000 pointer-events-none">
 
-            <h3 className="text-[3.5vmin] font-bold text-center leading-relaxed text-lev-burgundy/80 w-full">
-              {data.subText}
-            </h3>
-
-            {data.notes && !isMemorial && (
-              <h4 className="text-[2vmin] font-bold text-gray-500 italic opacity-60 text-center">
-                {data.notes}
-              </h4>
-            )}
-          </div>
-
-          {/* 3. Bottom Section: Footer & Donors */}
-          <div className="flex-none flex flex-col items-center z-10 w-full mt-auto gap-[1vh]">
-            {isMemorial ? (
-              <div className="flex flex-col items-center gap-[0.5vh]">
-                {data.hebrewDate && (
-                  <div className="text-[2.5vmin] font-semibold text-amber-700/70 italic tracking-widest text-center">
-                    {data.hebrewDate}
+                {data.donorLogo && (
+                  <div className="bg-white p-[0.6vh] rounded-[1.2vmin] shadow-sm border border-gray-100 flex items-center justify-center shrink-0 h-[8vh] min-w-[8vh]">
+                    <img
+                      src={data.donorLogo}
+                      alt="Donor"
+                      className="h-full w-auto object-contain"
+                      onError={(e) => { e.target.style.display = 'none'; }}
+                    />
                   </div>
                 )}
-                <div className={`text-[3vmin] font-black tracking-[0.4em] leading-none pr-[0.4em] drop-shadow-lg ${config.footer}`}>
-                  ת.נ.צ.ב.ה
-                </div>
-              </div>
-            ) : (
-              data.footerText && (
-                <div className={`text-[6vmin] font-black tracking-wide text-center uppercase ${config.footer}`}>
-                  {data.footerText}
-                </div>
-              )
-            )}
 
-            {/* Donor Branding */}
-            {(data.donorName || data.donorLogo) && (
-              <div className="pt-[1vh] border-t border-gray-100/30 w-full flex flex-col items-center gap-[0.5vh]">
-                <span className="text-[1.8vmin] font-bold text-gray-400 tracking-[0.2em] uppercase">נתרם ע"י</span>
-                
-                <div className="w-full flex justify-center items-center gap-[2vw] px-[2vw]">
-                  {data.donorLogo && (
-                    <div className="bg-white p-[0.5vh] rounded-[1vh] shadow-sm border border-gray-100/50">
-                      <img 
-                        src={data.donorLogo} 
-                        alt={data.donorName || "לוגו תורם"} 
-                        className="h-[6vh] w-auto object-contain transition-all rounded-md" 
-                      />
-                    </div>
-                  )}
+                <div className="flex flex-col items-start justify-center text-right py-[0.5vh]">
+                  <span className="text-[clamp(10px,1.5vmin,16px)] font-black text-gray-400 tracking-[0.15em] uppercase mb-[0.3vh] leading-none">
+                    נתרם ע"י
+                  </span>
                   {data.donorName && (
-                    <span className={`text-[3.5vmin] font-black ${config.footer} opacity-90 text-center leading-tight`}>
+                    <span className={`text-[clamp(1.2rem,2.8vmin,2.4rem)] font-black ${config.footer} opacity-95 tracking-tight truncate max-w-[45vw] leading-tight`}>
                       {data.donorName}
                     </span>
                   )}

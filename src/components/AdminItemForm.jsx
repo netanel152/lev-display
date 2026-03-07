@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { ImageIcon, X, Trash2 } from "lucide-react";
 import PreviewModal from "./PreviewModal";
+import { FIXED_TITLES } from "../constants";
 import {
   HEBREW_DAYS,
   HEBREW_MONTHS,
@@ -8,7 +9,7 @@ import {
   getGregorianFromHebrew,
 } from "../utils/hebrewDate";
 
-const AdminItemForm = ({ onClose, onSave, initialData, isEditing }) => {
+const AdminItemForm = ({ onClose, onSave, initialData, isEditing, isSaving = false }) => {
   const [showPreview, setShowPreview] = useState(false);
 
   // Local state for Hebrew Date Picker
@@ -17,23 +18,7 @@ const AdminItemForm = ({ onClose, onSave, initialData, isEditing }) => {
   const [hYear, setHYear] = useState("");
 
   const [formData, setFormData] = useState(() => {
-    if (initialData) {
-      return {
-        type: initialData.type || "memorial",
-        mainName: initialData.mainName || "",
-        subText: initialData.subText || "",
-        date: initialData.date || "", // Gregorian string for sorting/auto-calc
-        hebrewDate: initialData.hebrewDate || "", // Full string
-        gregorianDateString: initialData.gregorianDateString || "", // Manual civil date
-        displayDuration: initialData.displayDuration || "forever",
-        notes: initialData.notes || "",
-        donorName: initialData.donorName || "",
-        donorLogo: initialData.donorLogo || "",
-        title: initialData.title || "",
-        footerText: initialData.footerText || "",
-      };
-    }
-    return {
+    const baseData = initialData || {
       type: "memorial",
       mainName: "",
       subText: "",
@@ -44,8 +29,12 @@ const AdminItemForm = ({ onClose, onSave, initialData, isEditing }) => {
       notes: "",
       donorName: "",
       donorLogo: "",
-      title: "",
-      footerText: "",
+      hidden: false,
+    };
+
+    return {
+      ...baseData,
+      title: baseData.title || FIXED_TITLES[baseData.type || "memorial"],
     };
   });
 
@@ -87,7 +76,8 @@ const AdminItemForm = ({ onClose, onSave, initialData, isEditing }) => {
     if (hDay && hMonth && hYear) {
       const fullHebrewString = `${hDay} ב${hMonth} ${hYear}`;
       const gregDate = getGregorianFromHebrew(hDay, hMonth, hYear);
-      const gregDateString = gregDate.toISOString().split("T")[0]; // YYYY-MM-DD
+      // Use en-CA to get YYYY-MM-DD in local time, matching DisplayPage logic
+      const gregDateString = gregDate.toLocaleDateString('en-CA'); 
 
       setFormData((prev) => ({
         ...prev,
@@ -100,8 +90,8 @@ const AdminItemForm = ({ onClose, onSave, initialData, isEditing }) => {
   const handleChange = (field, value) => {
     setFormData((prev) => {
       const newData = { ...prev, [field]: value };
-      if (field === "type" && value === "success" && !prev.title) {
-        newData.title = "להצלחת";
+      if (field === "type") {
+        newData.title = FIXED_TITLES[value];
       }
       return newData;
     });
@@ -118,7 +108,7 @@ const AdminItemForm = ({ onClose, onSave, initialData, isEditing }) => {
           const canvas = document.createElement("canvas");
           let width = img.width;
           let height = img.height;
-          
+
           // Increased size for higher quality on high-res displays
           const MAX_SIZE = 1024;
 
@@ -137,11 +127,11 @@ const AdminItemForm = ({ onClose, onSave, initialData, isEditing }) => {
           canvas.width = width;
           canvas.height = height;
           const ctx = canvas.getContext("2d");
-          
+
           // Ensure smooth scaling
           ctx.imageSmoothingEnabled = true;
           ctx.imageSmoothingQuality = 'high';
-          
+
           ctx.drawImage(img, 0, 0, width, height);
 
           // Best Practice for Logos: 
@@ -150,7 +140,7 @@ const AdminItemForm = ({ onClose, onSave, initialData, isEditing }) => {
           let compressedBase64;
           if (file.type === "image/png" || file.type === "image/svg+xml") {
             compressedBase64 = canvas.toDataURL("image/png");
-            
+
             // Safety check: If PNG is still too large (> 800KB), convert to high-quality JPEG
             if (compressedBase64.length > 800000) {
               compressedBase64 = canvas.toDataURL("image/jpeg", 0.9);
@@ -159,7 +149,7 @@ const AdminItemForm = ({ onClose, onSave, initialData, isEditing }) => {
             // Increased quality to 0.9 for better sharpness and fewer artifacts
             compressedBase64 = canvas.toDataURL("image/jpeg", 0.9);
           }
-          
+
           resolve(compressedBase64);
         };
         img.onerror = (err) => reject(err);
@@ -192,7 +182,10 @@ const AdminItemForm = ({ onClose, onSave, initialData, isEditing }) => {
     let expirationTimestamp = null;
     if (formData.displayDuration !== "forever") {
       const now = new Date();
-      if (formData.displayDuration === "1week") now.setDate(now.getDate() + 7);
+      if (formData.displayDuration === "24hours")
+        now.setHours(23, 59, 59, 999);
+      else if (formData.displayDuration === "1week")
+        now.setDate(now.getDate() + 7);
       else if (formData.displayDuration === "2weeks")
         now.setDate(now.getDate() + 14);
       else if (formData.displayDuration === "1month")
@@ -283,12 +276,11 @@ const AdminItemForm = ({ onClose, onSave, initialData, isEditing }) => {
                         handleChange("displayDuration", e.target.value)
                       }
                     >
-                      <option value="forever">
-                        ללא הגבלה (לפי תאריך עברי)
-                      </option>
+                      <option value="24hours">למשך אותו יום</option>
                       <option value="1week">למשך שבוע</option>
                       <option value="2weeks">למשך שבועיים</option>
                       <option value="1month">למשך חודש</option>
+                      <option value="forever">ללא הגבלה</option>
                     </select>
                   </div>
                 </div>
@@ -394,18 +386,22 @@ const AdminItemForm = ({ onClose, onSave, initialData, isEditing }) => {
                       placeholder="למשל: לעילוי נשמת / לרפואת"
                     />
                   </div>
-                  <div>
-                    <label className="block text-base font-bold text-gray-700 mb-2">
-                      טקסט תחתון (מופיע בתחתית השקופית)
+
+                  {/* Visibility Toggle */}
+                  <div className="bg-red-50 p-6 rounded-2xl border-2 border-red-100 flex items-center justify-between">
+                    <div>
+                      <h3 className="text-lg font-black text-red-700 leading-none">הפסקת הצגה</h3>
+                      <p className="text-sm text-red-600/70 font-bold mt-1">הסתרת השקופית מהמסך ללא מחיקה</p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        className="sr-only peer"
+                        checked={formData.hidden}
+                        onChange={(e) => handleChange("hidden", e.target.checked)}
+                      />
+                      <div className="w-14 h-7 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-red-600"></div>
                     </label>
-                    <input
-                      className="w-full p-4 md:p-5 bg-gray-50 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-lev-blue/10 focus:border-lev-blue outline-none transition-all text-lg font-medium placeholder:text-gray-300"
-                      value={formData.footerText}
-                      onChange={(e) =>
-                        handleChange("footerText", e.target.value)
-                      }
-                      placeholder="למשל: מאחלים לב חב״ד"
-                    />
                   </div>
                 </div>
 
@@ -512,9 +508,11 @@ const AdminItemForm = ({ onClose, onSave, initialData, isEditing }) => {
             <button
               type="submit"
               form="item-form"
-              className="px-8 py-3 bg-lev-blue text-white font-bold rounded-xl hover:bg-blue-700 transition shadow-lg shadow-blue-200"
+              disabled={isSaving}
+              className={`px-8 py-3 bg-lev-blue text-white font-bold rounded-xl transition shadow-lg shadow-blue-200 flex items-center gap-2 ${isSaving ? 'opacity-70 cursor-not-allowed' : 'hover:bg-blue-700'}`}
             >
-              שמור שינויים
+              {isSaving && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+              {isSaving ? "שומר..." : "שמור שינויים"}
             </button>
           </div>
         </div>

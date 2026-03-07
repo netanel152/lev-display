@@ -58,13 +58,19 @@ export const addItem = async (item, imageFile) => {
     let imageUrl = item.donorLogo || "";
 
     if (imageFile) {
+      // Clear the local base64 if it exists to avoid double payload/size issues
+      const cleanItem = { ...item };
+      delete cleanItem.donorLogo;
       imageUrl = await uploadImage(imageFile);
+      
+      const docRef = await addDoc(collection(db, COLLECTION_NAME), {
+        ...cleanItem,
+        donorLogo: imageUrl
+      });
+      return { id: docRef.id, ...cleanItem, donorLogo: imageUrl };
     }
 
-    const docRef = await addDoc(collection(db, COLLECTION_NAME), {
-      ...item,
-      donorLogo: imageUrl
-    });
+    const docRef = await addDoc(collection(db, COLLECTION_NAME), item);
     
     console.log(`[FirebaseService] Item added successfully. ID: ${docRef.id}`);
     return { id: docRef.id, ...item, donorLogo: imageUrl };
@@ -80,14 +86,21 @@ export const updateItem = async (id, data, imageFile) => {
     let imageUrl = data.donorLogo || "";
 
     if (imageFile) {
+      // Clear the local base64 if it exists to avoid double payload/size issues
+      const cleanData = { ...data };
+      delete cleanData.donorLogo;
       imageUrl = await uploadImage(imageFile);
+      
+      const itemRef = doc(db, COLLECTION_NAME, id);
+      await updateDoc(itemRef, {
+        ...cleanData,
+        donorLogo: imageUrl
+      });
+      return { id, ...cleanData, donorLogo: imageUrl };
     }
 
     const itemRef = doc(db, COLLECTION_NAME, id);
-    await updateDoc(itemRef, {
-      ...data,
-      donorLogo: imageUrl
-    });
+    await updateDoc(itemRef, data);
 
     console.log(`[FirebaseService] Item updated successfully: ${id}`);
     return { id, ...data, donorLogo: imageUrl };

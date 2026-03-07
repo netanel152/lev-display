@@ -6,6 +6,7 @@ import { getTodayHebrewDate, getCurrentHoliday, isSameHebrewDayAndMonth } from "
 import { subscribeToItems, subscribeToSettings } from "../services/dataService";
 import { EMPTY_SLIDE_DATA, DEFAULT_SLIDE_DURATION, FADE_DURATION } from "../constants";
 import SlideCard from "../components/SlideCard";
+import logo from "../assets/original-logo.jpg";
 
 const DisplayPage = () => {
   const navigate = useNavigate();
@@ -70,15 +71,48 @@ const DisplayPage = () => {
 
   const currentHoliday = getCurrentHoliday();
 
+  // Calculate today's dates once for performance and consistency
+  const now = new Date();
+  const todayGregorian = now.toLocaleDateString('en-CA'); // YYYY-MM-DD local
+  const todayHebrew = getTodayHebrewDate();
+
   const todayItems = (items || []).filter(item => {
-    const now = new Date();
-    const todayGregorian = now.toLocaleDateString('en-CA');
-    const todayHebrew = getTodayHebrewDate();
+    // 0. Filter out manually hidden items
+    if (item.hidden === true) return false;
+
+    // 1. Handle Expiration & Range Display
     if (item.expirationTimestamp) {
-      const expiry = item.expirationTimestamp.seconds ? new Date(item.expirationTimestamp.seconds * 1000) : new Date(item.expirationTimestamp);
-      if (now > expiry) return false;
+      const expiry = item.expirationTimestamp.seconds 
+        ? new Date(item.expirationTimestamp.seconds * 1000) 
+        : new Date(item.expirationTimestamp);
+      
+      // We want to show it until the end of the expiration day (midnight).
+      // If today is equal to expiration day, it should still show.
+      const expiryDay = new Date(expiry);
+      expiryDay.setHours(23, 59, 59, 999);
+
+      return now <= expiryDay;
     }
-    return (!item.date && !item.hebrewDate) || item.date === todayGregorian || isSameHebrewDayAndMonth(item.hebrewDate, todayHebrew);
+
+    // 2. Handle Permanent / Anniversary Display (ללא תוקף)
+    // For anniversary mode, we ignore the year.
+    
+    // Check Gregorian: Compare MM-DD
+    const getMonthDay = (dateStr) => {
+      if (!dateStr || dateStr.length < 10) return null;
+      return dateStr.substring(5); // Returns "MM-DD" from "YYYY-MM-DD"
+    };
+
+    const todayMD = todayGregorian.substring(5);
+    const itemMD = getMonthDay(item.date) || getMonthDay(item.gregorianDateString);
+    
+    const matchesGregorian = itemMD && itemMD === todayMD;
+    const matchesHebrew = item.hebrewDate && isSameHebrewDayAndMonth(item.hebrewDate, todayHebrew);
+    
+    // If no date is set at all, it's a "Static" slide (Show every day).
+    const isStatic = !item.date && !item.hebrewDate && !item.gregorianDateString;
+
+    return isStatic || matchesGregorian || matchesHebrew;
   });
 
   if (currentHoliday) {
@@ -128,7 +162,8 @@ const DisplayPage = () => {
 
       {/* 1. Header: Fixed-none, VH-based padding */}
       <header className="flex-none w-full flex justify-between items-center px-[4vw] py-[2vh] z-50">
-        <div className="flex items-center gap-[2vw]">
+        {/* Left Side: Controls */}
+        <div className="flex items-center gap-[2vw] flex-1">
           <div className="text-lev-burgundy font-black text-[3vmin] opacity-80 whitespace-nowrap">בס"ד</div>
           <div className="flex gap-[1vw]">
             <button
@@ -146,7 +181,17 @@ const DisplayPage = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-[1.5vw]">
+        {/* Center: Logo */}
+        <div className="flex-none bg-white/50 backdrop-blur-sm p-[1vh] rounded-[2vh] shadow-lg border border-white/40">
+          <img
+            src={logo}
+            alt="לב חב'ד"
+            className="h-[10vh] w-auto object-contain rounded-lg"
+          />
+        </div>
+
+        {/* Right Side: Status & Date */}
+        <div className="flex items-center justify-end gap-[1.5vw] flex-1">
           {!isOnline && (
             <div className="bg-white/90 backdrop-blur-xl border border-red-100 px-3 py-1.5 rounded-full shadow-sm flex items-center gap-2 animate-in zoom-in duration-300">
               <div className="relative flex h-2 w-2">
@@ -190,16 +235,24 @@ const DisplayPage = () => {
         </div>
 
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none z-0">
-          <h2 className="text-lev-burgundy font-black text-[2.5vmin] opacity-20 italic whitespace-nowrap">לב חב"ד - תמיד כאן בשבילכם</h2>
+          <h2 className="text-lev-burgundy font-black text-[3vmin] opacity-60 tracking-tight whitespace-nowrap">
+            {settings.sponsorsText || "לב חב\"ד - תמיד כאן בשבילכם"}
+          </h2>
         </div>
 
         {settings.donationUrl && (
-          <div className="flex items-center gap-[1.5vw] bg-lev-yellow/5 p-[1vh] rounded-[2vh] border border-lev-burgundy/5 shadow-inner z-10 h-[90%]">
-            <span className="hidden sm:block text-right text-[1.8vmin] font-black text-lev-burgundy leading-tight">
-              רוצים לתרום?<br />סרקו אותי ❤️
-            </span>
-            <div className="bg-white p-[0.5vh] rounded-[1.5vh] shadow-md border border-gray-100 h-full aspect-square flex items-center justify-center">
-              <QRCode value={settings.donationUrl} size={256} className="w-full h-full" />
+          <div className="flex items-center gap-[2.5vw] bg-lev-yellow px-[2vw] py-[1vh] rounded-[2.5vh] border-[0.3vh] border-amber-400 shadow-[0_10px_40px_rgba(253,207,65,0.4)] z-10 h-[90%] animate-in slide-in-from-left duration-700">
+            <div className="flex flex-col justify-center items-end">
+              <span className="text-[2.2vmin] font-black text-lev-burgundy leading-tight drop-shadow-sm">
+                רוצים לתרום?
+              </span>
+              <span className="text-[2.5vmin] font-black text-lev-burgundy/90 flex items-center gap-1">
+                סרקו אותי 🙂
+              </span>
+            </div>
+            <div className="bg-white p-[0.6vh] rounded-[1.8vh] shadow-xl border-2 border-amber-400/30 h-full aspect-square flex items-center justify-center relative group">
+              <div className="absolute inset-0 rounded-[1.8vh] border-[0.4vh] border-amber-400 animate-pulse opacity-60" />
+              <QRCode value={settings.donationUrl} size={256} className="w-full h-full relative z-10" />
             </div>
           </div>
         )}

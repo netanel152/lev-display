@@ -1,3 +1,5 @@
+import { getTodayHebrewDate } from "./utils/hebrewDate";
+
 export const STORAGE_KEYS = {
   DISPLAY_ITEMS: "displayItems",
   IS_ADMIN: "isAdmin",
@@ -21,6 +23,8 @@ export const FIXED_TITLES = {
   success: "להצלחה וברכה"
 };
 
+const currentHebrewDate = getTodayHebrewDate();
+
 export const MOCK_DATA = [
   {
     id: 1,
@@ -28,7 +32,7 @@ export const MOCK_DATA = [
     title: FIXED_TITLES.memorial,
     mainName: "אברהם יצחק זערור ז\"ל",
     subText: "בן אפרים ושרה",
-    hebrewDate: "י\"ז באדר תשפ\"ו",
+    hebrewDate: currentHebrewDate,
     donorName: "משפחת זערור",
   },
   {
@@ -37,7 +41,7 @@ export const MOCK_DATA = [
     title: FIXED_TITLES.birthday,
     mainName: "חיה מושקא",
     subText: "עד מאה ועשרים כעשרים!",
-    hebrewDate: "י\"ז באדר תשפ\"ו",
+    hebrewDate: currentHebrewDate,
     footerText: 'באהבה ממשפחת לב חב"ד',
   },
   {
@@ -46,7 +50,7 @@ export const MOCK_DATA = [
     title: FIXED_TITLES.healing,
     mainName: "ישראל מאיר בן רבקה רחל",
     subText: "בתוך שאר חולי ישראל",
-    hebrewDate: "י\"ז באדר תשפ\"ו",
+    hebrewDate: currentHebrewDate,
     footerText: 'קפיטריית החסד לב חב"ד',
     donorName: "מתנת אנונימי",
   },
@@ -56,6 +60,7 @@ export const MOCK_DATA = [
     title: FIXED_TITLES.success,
     mainName: "משפחת לוי",
     subText: "בכל מעשי ידיהם",
+    hebrewDate: currentHebrewDate,
     footerText: 'מברכים בחום, החברים',
   },
   {
@@ -64,13 +69,13 @@ export const MOCK_DATA = [
     title: FIXED_TITLES.memorial,
     mainName: "הרב לוי יצחק שניאורסון",
     subText: "אביו של הרבי מליובאוויטש",
-    hebrewDate: "כ' באב",
+    hebrewDate: currentHebrewDate,
   }
 ];
 
 export const EMPTY_SLIDE_DATA = {
   id: 'empty',
-  type: 'success', 
+  type: 'success',
   title: 'ברוכים הבאים',
   mainName: 'לב חב"ד',
   subText: 'הכתובת שלכם במרכז הרפואי',
@@ -86,4 +91,5 @@ export const DEFAULT_SETTINGS = {
   defaultSlideMainName: EMPTY_SLIDE_DATA.mainName,
   defaultSlideSubText: EMPTY_SLIDE_DATA.subText,
   defaultSlideFooterText: EMPTY_SLIDE_DATA.footerText,
+  sponsorsText: "לב חב\"ד - תמיד כאן בשבילכם",
 };
