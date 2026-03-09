@@ -85,11 +85,11 @@ const SlideCard = ({ data, fade = true }) => {
           <div className={`absolute -bottom-[20vh] -left-[20vh] w-[50vh] h-[50vh] bg-gradient-to-br ${config.gradient} opacity-5 blur-[10vh] rounded-full`} />
 
           {/* MIDDLE STAGE: The "Hero" content area */}
-          <div className="flex-1 flex flex-col items-center justify-center w-full min-h-0 px-[2vw] gap-[min(2.5vh,20px)] z-10">
+          <div className={`flex-1 flex flex-col items-center w-full min-h-0 px-[2vw] z-10 ${isMemorial ? 'justify-center gap-[min(2.5vh,20px)]' : 'justify-start pt-[2vh] gap-[6vh]'}`}>
 
             {/* Branding Header */}
             {data.id !== 'empty' && (
-              <h2 className="text-[clamp(1rem,2.5vmin,1.8rem)] font-black text-lev-burgundy tracking-[0.15em] drop-shadow-sm leading-none uppercase shrink-0">
+              <h2 className="text-[clamp(1rem,3.0vmin,1.8rem)] font-black text-lev-burgundy tracking-[0.15em] drop-shadow-sm leading-none uppercase shrink-0">
                 קפיטריית החסד מוקדשת
               </h2>
             )}
@@ -111,22 +111,21 @@ const SlideCard = ({ data, fade = true }) => {
               </div>
             )}
 
-            {/* Name + Subtext Group for tighter spacing */}
-            <div className="flex flex-col items-center gap-0 w-full shrink-0">
-              {/* Main Name Row - GRID FIX */}
-              <div className="grid grid-cols-[auto_1fr_auto] items-center gap-[2vw] md:gap-[4vw] w-full max-w-[95%] mx-auto min-h-0 shrink-0">
-                <div className="flex justify-center">
+            {/* Name + Subtext Group */}
+            <div className={`flex flex-col items-center w-full shrink-0 ${isMemorial ? 'gap-0' : 'gap-[4vh]'}`}>
+              <div className="flex items-center justify-center gap-[3.5vw] md:gap-[5vw] w-full max-w-[98%] mx-auto min-h-0 shrink-0">
+                <div className="flex justify-center shrink-0">
                   {isMemorial && <img src={candleImg} alt="Candle" {...imgProps} />}
                   {isBirthday && <img src={balloonsImg} alt="Balloons" {...imgProps} />}
                   {isHealing && <img src={stethoscopeImg} alt="Stethoscope" {...imgProps} />}
                   {isSuccess && <img src={starImg} alt="Star" {...imgProps} />}
                 </div>
 
-                <h1 className={`text-[clamp(1.5rem,5vmin,5rem)] font-black text-center break-words text-balance leading-[1.1] tracking-tighter drop-shadow-2xl ${config.name}`}>
+                <h1 className={`text-[clamp(1.5rem,5vmin,5rem)] font-black text-center break-words text-balance leading-[1.1] tracking-tighter drop-shadow-2xl flex-none max-w-[65%] ${config.name}`}>
                   {data.mainName}
                 </h1>
 
-                <div className="flex justify-center">
+                <div className="flex justify-center shrink-0">
                   {isMemorial && <img src={candleImg} alt="Candle" {...imgProps} />}
                   {isBirthday && <img src={balloonsImg} alt="Balloons" {...imgProps} />}
                   {isHealing && <img src={stethoscopeImg} alt="Stethoscope" {...imgProps} />}
@@ -158,7 +157,7 @@ const SlideCard = ({ data, fade = true }) => {
               </div>
             )}
 
-            {/* Donor Branding - Premium Branding Badge */}
+            {/* Donor Branding */}
             {(data.donorName || data.donorLogo) && (
               <div className="w-fit max-w-[90%] bg-white/80 backdrop-blur-xl px-[2.5vw] py-[0.8vh] rounded-[2vmin] border border-white shadow-lg flex items-center gap-[2.5vw] animate-in fade-in slide-in-from-bottom-4 duration-1000 pointer-events-none">
 

@@ -82,10 +82,10 @@ const DisplayPage = () => {
 
     // 1. Handle Expiration & Range Display
     if (item.expirationTimestamp) {
-      const expiry = item.expirationTimestamp.seconds 
-        ? new Date(item.expirationTimestamp.seconds * 1000) 
+      const expiry = item.expirationTimestamp.seconds
+        ? new Date(item.expirationTimestamp.seconds * 1000)
         : new Date(item.expirationTimestamp);
-      
+
       // We want to show it until the end of the expiration day (midnight).
       // If today is equal to expiration day, it should still show.
       const expiryDay = new Date(expiry);
@@ -96,7 +96,7 @@ const DisplayPage = () => {
 
     // 2. Handle Permanent / Anniversary Display (ללא תוקף)
     // For anniversary mode, we ignore the year.
-    
+
     // Check Gregorian: Compare MM-DD
     const getMonthDay = (dateStr) => {
       if (!dateStr || dateStr.length < 10) return null;
@@ -105,10 +105,10 @@ const DisplayPage = () => {
 
     const todayMD = todayGregorian.substring(5);
     const itemMD = getMonthDay(item.date) || getMonthDay(item.gregorianDateString);
-    
+
     const matchesGregorian = itemMD && itemMD === todayMD;
     const matchesHebrew = item.hebrewDate && isSameHebrewDayAndMonth(item.hebrewDate, todayHebrew);
-    
+
     // If no date is set at all, it's a "Static" slide (Show every day).
     const isStatic = !item.date && !item.hebrewDate && !item.gregorianDateString;
 
@@ -159,6 +159,29 @@ const DisplayPage = () => {
 
   return (
     <div className="h-[100dvh] w-full bg-lev-yellow relative flex flex-col overflow-hidden bg-[radial-gradient(circle_at_center,_#FDCF41_0%,_#fbbd08_100%)] select-none">
+
+      {/* Floating QR Code: Top-Left */}
+      {settings.donationUrl && (
+        <div className="absolute top-[20vh] left-[4vw] z-50 flex items-center gap-[2vw] bg-lev-yellow px-[2vw] py-[1.5vh] rounded-[2.5vh] border-[0.3vh] border-amber-400 shadow-[0_15px_50px_rgba(253,207,65,0.4)] animate-in slide-in-from-left duration-700">
+          <div className="flex flex-col justify-center items-end text-right">
+            <span className="text-[3vmin] font-black text-lev-burgundy leading-tight drop-shadow-sm">
+              רוצים לתרום?
+            </span>
+            <span className="text-[3vmin] font-black text-lev-burgundy/90 flex items-center gap-2">
+              סרקו אותי🙂
+            </span>
+          </div>
+
+          <div className="bg-white p-[0.8vh] rounded-[1.8vh] shadow-xl border-2 border-amber-400/30 aspect-square flex items-center justify-center relative group">
+            <div className="absolute inset-0 rounded-[1.8vh] border-[0.4vh] border-amber-400 animate-pulse opacity-60" />
+            <QRCode
+              value={settings.donationUrl}
+              style={{ height: "auto", maxWidth: "8.5vh", width: "100%" }}
+              className="relative z-10"
+            />
+          </div>
+        </div>
+      )}
 
       {/* 1. Header: Fixed-none, VH-based padding */}
       <header className="flex-none w-full flex justify-between items-center px-[4vw] py-[2vh] z-50">
@@ -211,7 +234,7 @@ const DisplayPage = () => {
 
       {/* 2. Main Stage: flex-1, min-h-0 */}
       <main className="flex-1 min-h-0 relative z-0 flex items-center justify-center p-[2vh]">
-        <div className="w-full h-full max-w-[95vw] flex items-center justify-center">
+        <div className="w-full h-full max-w-[95vw] flex items-center justify-center relative">
           <SlideCard data={data} fade={fade} />
         </div>
       </main>
@@ -239,23 +262,6 @@ const DisplayPage = () => {
             {settings.sponsorsText || "לב חב\"ד - תמיד כאן בשבילכם"}
           </h2>
         </div>
-
-        {settings.donationUrl && (
-          <div className="flex items-center gap-[2.5vw] bg-lev-yellow px-[2vw] py-[1vh] rounded-[2.5vh] border-[0.3vh] border-amber-400 shadow-[0_10px_40px_rgba(253,207,65,0.4)] z-10 h-[90%] animate-in slide-in-from-left duration-700">
-            <div className="flex flex-col justify-center items-end">
-              <span className="text-[2.2vmin] font-black text-lev-burgundy leading-tight drop-shadow-sm">
-                רוצים לתרום?
-              </span>
-              <span className="text-[2.5vmin] font-black text-lev-burgundy/90 flex items-center gap-1">
-                סרקו אותי 🙂
-              </span>
-            </div>
-            <div className="bg-white p-[0.6vh] rounded-[1.8vh] shadow-xl border-2 border-amber-400/30 h-full aspect-square flex items-center justify-center relative group">
-              <div className="absolute inset-0 rounded-[1.8vh] border-[0.4vh] border-amber-400 animate-pulse opacity-60" />
-              <QRCode value={settings.donationUrl} size={256} className="w-full h-full relative z-10" />
-            </div>
-          </div>
-        )}
       </footer>
     </div>
   );
