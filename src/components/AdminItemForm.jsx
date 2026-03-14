@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ImageIcon, X, Trash2 } from "lucide-react";
+import { ImageIcon, X, Trash2, PartyPopper } from "lucide-react";
 import PreviewModal from "./PreviewModal";
 import { FIXED_TITLES } from "../constants";
 import {
@@ -7,6 +7,7 @@ import {
   HEBREW_MONTHS,
   HEBREW_YEARS,
   getGregorianFromHebrew,
+  CURRENT_HEBREW_YEAR,
 } from "../utils/hebrewDate";
 
 const AdminItemForm = ({ onClose, onSave, initialData, isEditing, isSaving = false }) => {
@@ -30,15 +31,42 @@ const AdminItemForm = ({ onClose, onSave, initialData, isEditing, isSaving = fal
       donorName: "",
       donorLogo: "",
       hidden: false,
+      holidayOverride: "",
     };
+
+    // Smart default: If it's a holiday, default to "during_holiday" duration
+    const defaultDuration = baseData.type === 'holiday' ? "during_holiday" : (baseData.displayDuration || "forever");
 
     return {
       ...baseData,
+      displayDuration: defaultDuration,
       title: baseData.title || FIXED_TITLES[baseData.type || "memorial"],
     };
   });
 
   const [imageFile, setImageFile] = useState(null);
+
+  // Mapping of holidays to their traditional Hebrew dates (first day of holiday)
+  const HOLIDAY_DATES = {
+    "Chanukah": { day: "כ\"ה", month: "כסלו" },
+    "Purim": { day: "י\"ד", month: "אדר" }, // Note: System handles Adar II logic if needed in utils
+    "Pesach": { day: "ט\"ו", month: "ניסן" },
+    "Shavuot": { day: "ו'", month: "סיוון" },
+    "Rosh Hashana": { day: "א'", month: "תשרי" },
+    "Sukkot": { day: "ט\"ו", month: "תשרי" }
+  };
+
+  // Auto-fill dates when a holiday is selected
+  useEffect(() => {
+    if (formData.type === 'holiday' && formData.holidayOverride && !isEditing) {
+      const holidayInfo = HOLIDAY_DATES[formData.holidayOverride];
+      if (holidayInfo) {
+        setHDay(holidayInfo.day);
+        setHMonth(holidayInfo.month);
+        // Keep the current year as already set
+      }
+    }
+  }, [formData.holidayOverride, formData.type]);
 
   // Initialize Hebrew Date picker defaults
   useEffect(() => {
@@ -66,8 +94,13 @@ const AdminItemForm = ({ onClose, onSave, initialData, isEditing, isSaving = fal
         if (foundYear) setHYear(foundYear);
       }
     } else if (!isEditing) {
-      // Defaults for new item
-      setHYear(HEBREW_YEARS[0]); // Current/Latest year
+      // Defaults for new item - use exported current Hebrew year
+      if (HEBREW_YEARS.includes(CURRENT_HEBREW_YEAR)) {
+        setHYear(CURRENT_HEBREW_YEAR);
+      } else {
+        // Fallback to middle of list if for some reason current year isn't found
+        setHYear(HEBREW_YEARS[Math.floor(HEBREW_YEARS.length / 2)]);
+      }
     }
   }, [isEditing, initialData]);
 
@@ -77,12 +110,13 @@ const AdminItemForm = ({ onClose, onSave, initialData, isEditing, isSaving = fal
       const fullHebrewString = `${hDay} ב${hMonth} ${hYear}`;
       const gregDate = getGregorianFromHebrew(hDay, hMonth, hYear);
       // Use en-CA to get YYYY-MM-DD in local time, matching DisplayPage logic
-      const gregDateString = gregDate.toLocaleDateString('en-CA'); 
+      const gregDateString = gregDate.toLocaleDateString('en-CA');
 
       setFormData((prev) => ({
         ...prev,
         hebrewDate: fullHebrewString,
         date: gregDateString,
+        gregorianDateString: gregDateString,
       }));
     }
   }, [hDay, hMonth, hYear]);
@@ -182,16 +216,26 @@ const AdminItemForm = ({ onClose, onSave, initialData, isEditing, isSaving = fal
     let expirationTimestamp = null;
     if (formData.displayDuration !== "forever") {
       const now = new Date();
-      if (formData.displayDuration === "24hours")
+      
+      if (formData.displayDuration === "during_holiday" && formData.durationDays) {
+        // Set expiration to start date + holiday duration
+        const startDate = new Date(formData.gregorianDateString || formData.date);
+        startDate.setDate(startDate.getDate() + formData.durationDays);
+        startDate.setHours(23, 59, 59, 999);
+        expirationTimestamp = startDate;
+      } else if (formData.displayDuration === "24hours") {
         now.setHours(23, 59, 59, 999);
-      else if (formData.displayDuration === "1week")
+        expirationTimestamp = now;
+      } else if (formData.displayDuration === "1week") {
         now.setDate(now.getDate() + 7);
-      else if (formData.displayDuration === "2weeks")
+        expirationTimestamp = now;
+      } else if (formData.displayDuration === "2weeks") {
         now.setDate(now.getDate() + 14);
-      else if (formData.displayDuration === "1month")
+        expirationTimestamp = now;
+      } else if (formData.displayDuration === "1month") {
         now.setMonth(now.getMonth() + 1);
-
-      expirationTimestamp = now;
+        expirationTimestamp = now;
+      }
     }
 
     onSave({ ...formData, expirationTimestamp }, imageFile);
@@ -214,9 +258,9 @@ const AdminItemForm = ({ onClose, onSave, initialData, isEditing, isSaving = fal
       >
         <div className="bg-white w-full max-w-4xl rounded-2xl shadow-2xl flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-300">
           {/* Header */}
-          <div className="flex justify-between items-center p-6 border-b shrink-0">
+          <div className={`flex justify-between items-center p-6 border-b shrink-0 ${formData.type === 'holiday' ? 'bg-orange-50/50' : ''}`}>
             <h2 className="text-2xl font-bold text-gray-900">
-              {isEditing ? "עריכת הקדשה" : "הוספת הקדשה חדשה"}
+              {isEditing ? (formData.type === 'holiday' ? "עריכת חג" : "עריכת הקדשה") : (formData.type === 'holiday' ? "הוספת חג חדש" : "הוספת הקדשה חדשה")}
             </h2>
             <button
               onClick={onClose}
@@ -235,31 +279,55 @@ const AdminItemForm = ({ onClose, onSave, initialData, isEditing, isSaving = fal
             >
               {/* Left Column (Desktop) - Details */}
               <div className="space-y-6">
-                <div>
-                  <label className="block text-base font-bold text-gray-900 mb-2">
-                    סוג אירוע
-                  </label>
-                  <select
-                    className="w-full p-4 bg-gray-50 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-lev-blue/10 focus:border-lev-blue outline-none transition-all cursor-pointer font-medium text-gray-800"
-                    value={formData.type}
-                    onChange={(e) => handleChange("type", e.target.value)}
-                  >
-                    <option value="memorial">לזיכרון</option>
-                    <option value="birthday">יום הולדת</option>
-                    <option value="healing">לרפואה</option>
-                    <option value="success">להצלחה</option>
-                  </select>
-                </div>
+                {formData.type !== 'holiday' && (
+                  <div>
+                    <label className="block text-base font-bold text-gray-900 mb-2">
+                      סוג אירוע
+                    </label>
+                    <select
+                      className="w-full p-4 bg-gray-50 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-lev-blue/10 focus:border-lev-blue outline-none transition-all cursor-pointer font-medium text-gray-800"
+                      value={formData.type || "memorial"}
+                      onChange={(e) => handleChange("type", e.target.value)}
+                    >
+                      <option value="memorial">לזיכרון</option>
+                      <option value="birthday">יום הולדת</option>
+                      <option value="healing">לרפואה</option>
+                      <option value="success">להצלחה</option>
+                    </select>
+                  </div>
+                )}
+
+                {formData.type === "holiday" && (
+                  <div className="animate-in slide-in-from-top-2 duration-300">
+                    <label className="block text-base font-bold text-orange-900 mb-2">
+                      בחירת חג (עבור העיטורים בפינות)
+                    </label>
+                    <select
+                      className="w-full p-4 bg-white border-2 border-orange-300 rounded-2xl focus:ring-4 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all cursor-pointer font-black text-orange-900 shadow-sm"
+                      value={formData.holidayOverride || ""}
+                      onChange={(e) => handleChange("holidayOverride", e.target.value)}
+                    >
+                      <option value="">זיהוי אוטומטי (לפי התאריך)</option>
+                      <option value="Chanukah">חנוכה (חג האורים)</option>
+                      <option value="Purim">פורים (משנכנס אדר)</option>
+                      <option value="Pesach">פסח (חג המצות)</option>
+                      <option value="Shavuot">שבועות (מתן תורה)</option>
+                      <option value="Rosh Hashana">ראש השנה</option>
+                      <option value="Sukkot">סוכות (זמן שמחתנו)</option>
+                    </select>
+                    <p className="mt-2 text-xs text-orange-600 font-bold">הערה: העיטורים יופיעו בפינת המסך לפי החג שנבחר כאן.</p>
+                  </div>
+                )}
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-base font-bold text-gray-900 mb-2">
-                      תאריך לועזי (ידני)
+                      תאריך לועזי
                     </label>
                     <input
                       type="date"
                       className="w-full p-4 bg-gray-50 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-lev-blue/10 focus:border-lev-blue outline-none transition-all cursor-pointer font-medium text-gray-800"
-                      value={formData.gregorianDateString}
+                      value={formData.gregorianDateString || ""}
                       onChange={(e) =>
                         handleChange("gregorianDateString", e.target.value)
                       }
@@ -271,11 +339,14 @@ const AdminItemForm = ({ onClose, onSave, initialData, isEditing, isSaving = fal
                     </label>
                     <select
                       className="w-full p-4 bg-gray-50 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-lev-blue/10 focus:border-lev-blue outline-none transition-all cursor-pointer font-medium text-gray-800"
-                      value={formData.displayDuration}
+                      value={formData.displayDuration || "forever"}
                       onChange={(e) =>
                         handleChange("displayDuration", e.target.value)
                       }
                     >
+                      {formData.type === 'holiday' && (
+                        <option value="during_holiday">במשך ימי החג</option>
+                      )}
                       <option value="24hours">למשך אותו יום</option>
                       <option value="1week">למשך שבוע</option>
                       <option value="2weeks">למשך שבועיים</option>
@@ -286,7 +357,7 @@ const AdminItemForm = ({ onClose, onSave, initialData, isEditing, isSaving = fal
                 </div>
 
                 {/* Date Picker */}
-                <div className="bg-gray-50 p-6 rounded-2xl border-2 border-gray-200">
+                <div className={`p-6 rounded-2xl border-2 transition-colors ${formData.type === 'holiday' ? 'bg-orange-50/30 border-orange-100' : 'bg-gray-50 border-gray-200'}`}>
                   <label className="block text-base font-bold text-gray-900 mb-3">
                     תאריך האירוע (עברי)
                   </label>
@@ -294,7 +365,7 @@ const AdminItemForm = ({ onClose, onSave, initialData, isEditing, isSaving = fal
                     <div className="w-1/4">
                       <select
                         className="w-full p-3.5 bg-white border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-lev-blue/10 outline-none text-center font-bold text-gray-800"
-                        value={hDay}
+                        value={hDay || ""}
                         onChange={(e) => setHDay(e.target.value)}
                         required
                       >
@@ -309,7 +380,7 @@ const AdminItemForm = ({ onClose, onSave, initialData, isEditing, isSaving = fal
                     <div className="w-1/3">
                       <select
                         className="w-full p-3.5 bg-white border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-lev-blue/10 outline-none text-center font-bold text-gray-800"
-                        value={hMonth}
+                        value={hMonth || ""}
                         onChange={(e) => setHMonth(e.target.value)}
                         required
                       >
@@ -324,7 +395,7 @@ const AdminItemForm = ({ onClose, onSave, initialData, isEditing, isSaving = fal
                     <div className="flex-1">
                       <select
                         className="w-full p-3.5 bg-white border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-lev-blue/10 outline-none text-center font-bold text-gray-800"
-                        value={hYear}
+                        value={hYear || ""}
                         onChange={(e) => setHYear(e.target.value)}
                         required
                       >
@@ -338,7 +409,7 @@ const AdminItemForm = ({ onClose, onSave, initialData, isEditing, isSaving = fal
                     </div>
                   </div>
                   {formData.hebrewDate && (
-                    <p className="text-lg text-lev-blue font-bold mt-4 text-center bg-blue-100/50 py-2 rounded-xl border border-blue-200">
+                    <p className={`text-lg font-bold mt-4 text-center py-2 rounded-xl border ${formData.type === 'holiday' ? 'text-orange-700 bg-orange-100/50 border-orange-200' : 'text-lev-blue bg-blue-100/50 border-blue-200'}`}>
                       {formData.hebrewDate}
                     </p>
                   )}
@@ -347,26 +418,32 @@ const AdminItemForm = ({ onClose, onSave, initialData, isEditing, isSaving = fal
                 <div className="space-y-4">
                   <div>
                     <label className="block text-base font-bold text-gray-900 mb-2">
-                      שם מלא (להצגה בגדול)
+                      {formData.type === 'holiday' ? "שם החג (טקסט מרכזי)" : "שם מלא (להצגה בגדול)"}
                     </label>
                     <input
                       required
-                      className="w-full p-4 bg-gray-50 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-lev-blue/10 focus:border-lev-blue outline-none transition-all placeholder:text-gray-400 font-bold text-gray-800 text-lg"
-                      value={formData.mainName}
+                      className={`w-full p-4 border-2 rounded-2xl focus:ring-4 outline-none transition-all placeholder:text-gray-400 font-bold text-lg ${formData.type === 'holiday'
+                          ? 'bg-orange-50 border-orange-200 focus:ring-orange-500/10 focus:border-orange-500 text-orange-900'
+                          : 'bg-gray-50 border-gray-200 focus:ring-lev-blue/10 focus:border-lev-blue text-gray-800'
+                        }`}
+                      value={formData.mainName || ""}
                       onChange={(e) => handleChange("mainName", e.target.value)}
-                      placeholder="למשל: מנחם מענדל כהן"
+                      placeholder={formData.type === 'holiday' ? "למשל: חג הפסח" : "למשל: מנחם מענדל כהן"}
                     />
                   </div>
 
                   <div>
                     <label className="block text-base font-bold text-gray-900 mb-2">
-                      טקסט נוסף (מתחת לשם)
+                      {formData.type === 'holiday' ? "ברכה / טקסט משני" : "טקסט נוסף (מתחת לשם)"}
                     </label>
                     <input
-                      className="w-full p-4 bg-gray-50 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-lev-blue/10 focus:border-lev-blue outline-none transition-all placeholder:text-gray-400 font-medium text-gray-800"
-                      value={formData.subText}
+                      className={`w-full p-4 border-2 rounded-2xl focus:ring-4 outline-none transition-all placeholder:text-gray-400 font-medium ${formData.type === 'holiday'
+                          ? 'bg-orange-50 border-orange-200 focus:ring-orange-500/10 focus:border-orange-500 text-orange-900'
+                          : 'bg-gray-50 border-gray-200 focus:ring-lev-blue/10 focus:border-lev-blue text-gray-800'
+                        }`}
+                      value={formData.subText || ""}
                       onChange={(e) => handleChange("subText", e.target.value)}
-                      placeholder="למשל: בן הרב פלוני ז”ל"
+                      placeholder={formData.type === 'holiday' ? "למשל: חג כשר ושמח לכל בית ישראל" : "למשל: בן הרב פלוני ז”ל"}
                     />
                   </div>
                 </div>
@@ -377,13 +454,16 @@ const AdminItemForm = ({ onClose, onSave, initialData, isEditing, isSaving = fal
                 <div className="space-y-4">
                   <div>
                     <label className="block text-base font-bold text-gray-700 mb-2">
-                      כותרת ההקדשה (למשל: לעילוי נשמת / לרפואת)
+                      {formData.type === 'holiday' ? "כותרת עליונה (מעל שם החג)" : "כותרת ההקדשה (למשל: לעילוי נשמת / לרפואת)"}
                     </label>
                     <input
-                      className="w-full p-4 md:p-5 bg-gray-50 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-lev-blue/10 focus:border-lev-blue outline-none transition-all text-lg font-medium placeholder:text-gray-300"
-                      value={formData.title}
+                      className={`w-full p-4 md:p-5 border-2 rounded-2xl focus:ring-4 outline-none transition-all text-lg font-medium placeholder:text-gray-300 ${formData.type === 'holiday'
+                          ? 'bg-orange-50 border-orange-200 focus:ring-orange-500/10 focus:border-orange-500 text-orange-900'
+                          : 'bg-gray-50 border-gray-200 focus:ring-lev-blue/10 focus:border-lev-blue text-gray-800'
+                        }`}
+                      value={formData.title || ""}
                       onChange={(e) => handleChange("title", e.target.value)}
-                      placeholder="למשל: לעילוי נשמת / לרפואת"
+                      placeholder={formData.type === 'holiday' ? "למשל: חג שמח!" : "למשל: לעילוי נשמת / לרפואת"}
                     />
                   </div>
 
@@ -394,10 +474,10 @@ const AdminItemForm = ({ onClose, onSave, initialData, isEditing, isSaving = fal
                       <p className="text-sm text-red-600/70 font-bold mt-1">הסתרת השקופית מהמסך ללא מחיקה</p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
-                      <input 
-                        type="checkbox" 
+                      <input
+                        type="checkbox"
                         className="sr-only peer"
-                        checked={formData.hidden}
+                        checked={!!formData.hidden}
                         onChange={(e) => handleChange("hidden", e.target.checked)}
                       />
                       <div className="w-14 h-7 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-red-600"></div>
@@ -405,85 +485,99 @@ const AdminItemForm = ({ onClose, onSave, initialData, isEditing, isSaving = fal
                   </div>
                 </div>
 
-                <div className="bg-blue-50/30 p-6 rounded-3xl border-2 border-lev-blue/20 border-dashed">
-                  <h3 className="text-lg font-bold text-lev-blue mb-4 flex items-center gap-2">
-                    <ImageIcon size={20} />
-                    מיתוג תורם (אופציונלי)
-                  </h3>
+                {formData.type !== 'holiday' ? (
+                  <div className="bg-blue-50/30 p-6 rounded-3xl border-2 border-lev-blue/20 border-dashed animate-in fade-in duration-500">
+                    <h3 className="text-lg font-bold text-lev-blue mb-4 flex items-center gap-2">
+                      <ImageIcon size={20} />
+                      מיתוג תורם (אופציונלי)
+                    </h3>
 
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-bold text-gray-900 mb-1">
-                        שם התורם / הקדשה
-                      </label>
-                      <input
-                        className="w-full p-3.5 bg-white border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-lev-blue/10 outline-none font-bold text-gray-800"
-                        value={formData.donorName}
-                        onChange={(e) =>
-                          handleChange("donorName", e.target.value)
-                        }
-                        placeholder="למשל: נתרם ע״י משפחת..."
-                      />
-                    </div>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-bold text-gray-900 mb-1">
+                          שם התורם / הקדשה
+                        </label>
+                        <input
+                          className="w-full p-3.5 bg-white border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-lev-blue/10 outline-none font-bold text-gray-800"
+                          value={formData.donorName || ""}
+                          onChange={(e) =>
+                            handleChange("donorName", e.target.value)
+                          }
+                          placeholder="למשל: נתרם ע״י משפחת..."
+                        />
+                      </div>
 
-                    <div>
-                      <label className="block text-sm font-bold text-gray-900 mb-1">
-                        לוגו (קובץ או קישור)
-                      </label>
-                      <div className="flex gap-3 items-start">
-                        <div className="flex-1">
-                          <input
-                            className="w-full p-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-lev-blue/20 outline-none text-left ltr text-sm mb-2 font-mono"
-                            value={formData.donorLogo}
-                            onChange={(e) =>
-                              handleChange("donorLogo", e.target.value)
-                            }
-                            placeholder="https://..."
-                          />
-                          <label className="cursor-pointer bg-white border-2 border-gray-200 hover:bg-gray-50 text-gray-900 px-4 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition w-full shadow-sm">
-                            <ImageIcon size={18} />
-                            בחר קובץ תמונה
+                      <div>
+                        <label className="block text-sm font-bold text-gray-900 mb-1">
+                          לוגו (קובץ או קישור)
+                        </label>
+                        <div className="flex gap-3 items-start">
+                          <div className="flex-1">
                             <input
-                              type="file"
-                              accept="image/*"
-                              className="hidden"
-                              onChange={handleFileChange}
+                              className="w-full p-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-lev-blue/20 outline-none text-left ltr text-sm mb-2 font-mono"
+                              value={formData.donorLogo || ""}
+                              onChange={(e) =>
+                                handleChange("donorLogo", e.target.value)
+                              }
+                              placeholder="https://..."
                             />
-                          </label>
-                        </div>
-
-                        <div className="relative group">
-                          <div className="w-24 h-24 bg-white rounded-xl border-2 border-gray-200 flex items-center justify-center p-2 overflow-hidden shrink-0 shadow-inner">
-                            {formData.donorLogo ? (
-                              <img
-                                src={formData.donorLogo}
-                                alt="Preview"
-                                className="w-full h-full object-contain"
+                            <label className="cursor-pointer bg-white border-2 border-gray-200 hover:bg-gray-50 text-gray-900 px-4 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition w-full shadow-sm">
+                              <ImageIcon size={18} />
+                              בחר קובץ תמונה
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={handleFileChange}
                               />
-                            ) : (
-                              <span className="text-xs text-gray-400 text-center font-bold">
-                                אין לוגו
-                              </span>
+                            </label>
+                          </div>
+
+                          <div className="relative group">
+                            <div className="w-24 h-24 bg-white rounded-xl border-2 border-gray-200 flex items-center justify-center p-2 overflow-hidden shrink-0 shadow-inner">
+                              {formData.donorLogo ? (
+                                <img
+                                  src={formData.donorLogo}
+                                  alt="Preview"
+                                  className="w-full h-full object-contain"
+                                />
+                              ) : (
+                                <span className="text-xs text-gray-400 text-center font-bold">
+                                  אין לוגו
+                                </span>
+                              )}
+                            </div>
+                            {formData.donorLogo && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  handleChange("donorLogo", "");
+                                  setImageFile(null);
+                                }}
+                                className="absolute -top-2 -left-2 bg-red-500 text-white p-1.5 rounded-full shadow-lg hover:bg-red-600 transition-transform hover:scale-110 z-10"
+                                title="הסר לוגו"
+                              >
+                                <Trash2 size={14} />
+                              </button>
                             )}
                           </div>
-                          {formData.donorLogo && (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                handleChange("donorLogo", "");
-                                setImageFile(null);
-                              }}
-                              className="absolute -top-2 -left-2 bg-red-500 text-white p-1.5 rounded-full shadow-lg hover:bg-red-600 transition-transform hover:scale-110 z-10"
-                              title="הסר לוגו"
-                            >
-                              <Trash2 size={14} />
-                            </button>
-                          )}
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="bg-orange-50/50 p-8 rounded-3xl border-2 border-orange-200 border-dashed flex flex-col items-center justify-center text-center space-y-4 h-[300px] animate-in zoom-in-95 duration-500">
+                    <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 shadow-inner">
+                      <PartyPopper size={32} />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-black text-orange-900">עיצוב חג פעיל</h3>
+                      <p className="text-sm text-orange-700 font-bold mt-2 leading-relaxed">
+                        במצב חג, המערכת משתמשת בעיצוב מיוחד הכולל עיטורים בפינות המסך.
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             </form>
           </div>

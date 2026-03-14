@@ -6,7 +6,7 @@ export const STORAGE_KEYS = {
   APP_SETTINGS: "appSettings",
 };
 
-export const DEFAULT_SLIDE_DURATION = 5000; // 5 seconds
+export const DEFAULT_SLIDE_DURATION = 5; // 5 seconds
 export const FADE_DURATION = 800; // 800ms
 
 export const THEME_COLORS = {
@@ -20,7 +20,8 @@ export const FIXED_TITLES = {
   memorial: "לזכרון ועילוי נשמת",
   birthday: "בברכת מזל טוב ליום ההולדת",
   healing: "לרפואת",
-  success: "להצלחה וברכה"
+  success: "להצלחה וברכה",
+  holiday: "חג שמח!"
 };
 
 const currentHebrewDate = getTodayHebrewDate();
@@ -70,6 +71,60 @@ export const MOCK_DATA = [
     mainName: "הרב לוי יצחק שניאורסון",
     subText: "אביו של הרבי מליובאוויטש",
     hebrewDate: currentHebrewDate,
+  },
+  {
+    id: 6,
+    type: "holiday",
+    title: "חג אורים שמח",
+    mainName: "חנוכה",
+    subText: "מאחלים חג שמח לכל בית ישראל",
+    hebrewDate: getTodayHebrewDate(),
+    holidayOverride: "Chanukah"
+  },
+  {
+    id: 7,
+    type: "holiday",
+    title: "משנכנס אדר מרבין בשמחה",
+    mainName: "פורים",
+    subText: "חג פורים שמח לכל עם ישראל",
+    hebrewDate: getTodayHebrewDate(),
+    holidayOverride: "Purim"
+  },
+  {
+    id: 8,
+    type: "holiday",
+    title: "פסח כשר ושמח",
+    mainName: "חג הפסח",
+    subText: "בציפייה לגאולה השלימה בקרוב",
+    hebrewDate: getTodayHebrewDate(),
+    holidayOverride: "Pesach"
+  },
+  {
+    id: 9,
+    type: "holiday",
+    title: "זמן מתן תורתנו",
+    mainName: "שבועות",
+    subText: "חג שבועות שמח",
+    hebrewDate: getTodayHebrewDate(),
+    holidayOverride: "Shavuot"
+  },
+  {
+    id: 10,
+    type: "holiday",
+    title: "שנה טובה ומתוקה",
+    mainName: "ראש השנה",
+    subText: "כתיבה וחתימה טובה לשנה טובה ומתוקה",
+    hebrewDate: getTodayHebrewDate(),
+    holidayOverride: "Rosh Hashana"
+  },
+  {
+    id: 11,
+    type: "holiday",
+    title: "חג שמח",
+    mainName: "חג הסוכות",
+    subText: "זמן שמחתנו",
+    hebrewDate: getTodayHebrewDate(),
+    holidayOverride: "Sukkot"
   }
 ];
 

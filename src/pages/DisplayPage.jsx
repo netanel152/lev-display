@@ -115,8 +115,17 @@ const DisplayPage = () => {
     return isStatic || matchesGregorian || matchesHebrew;
   });
 
-  if (currentHoliday) {
-    todayItems.unshift({ id: 'holiday', type: 'holiday', mainName: currentHoliday, subText: 'חג שמח!', footerText: 'לב חב"ד מאחלים' });
+  // Only add automatic holiday slide if no manual holiday slides exist for today
+  const hasManualHolidaySlide = todayItems.some(item => item.type === 'holiday');
+
+  if (currentHoliday && !hasManualHolidaySlide) {
+    todayItems.unshift({ 
+      id: 'holiday-auto', 
+      type: 'holiday', 
+      mainName: currentHoliday, 
+      subText: 'חג שמח!', 
+      footerText: 'לב חב"ד מאחלים' 
+    });
   }
 
   const safeIndex = todayItems.length > 0 ? index % todayItems.length : 0;
@@ -129,7 +138,7 @@ const DisplayPage = () => {
         setIndex(prev => prev + 1);
         setFade(true);
       }, FADE_DURATION);
-    }, settings.slideDuration);
+    }, (settings.slideDuration || 5) * 1000);
     return () => clearInterval(interval);
   }, [todayItems.length, settings.slideDuration]);
 

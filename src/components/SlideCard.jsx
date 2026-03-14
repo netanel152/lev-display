@@ -1,8 +1,30 @@
 import candleImg from "../assets/candle-real.png";
 import balloonsImg from "../assets/balloons-real.png";
 import stethoscopeImg from "../assets/stethoscope-real.png";
-import starImg from "../assets/star-real.png";
 import { getTheme } from "../utils/slideUtils";
+import { getCurrentHoliday } from "../utils/hebrewDate";
+
+import chanukah1 from "../assets/holiday-chanukah.png";
+import chanukah2 from "../assets/chanukah-sevivon.png";
+import pesach1 from "../assets/holiday-passover-matzot.png";
+import pesach2 from "../assets/holiday-passover-seder-plate.png";
+import purim1 from "../assets/holiday-purim.png";
+import purim2 from "../assets/holiday-purim-megila.png";
+import roshHashana1 from "../assets/holiday-rosh-hashana-shofar.png";
+import roshHashana2 from "../assets/holiday-rosh-hashana-apple-honey.png";
+import shavuot1 from "../assets/holiday-shavuot-cuisine-ten-commandments.png";
+import shavuot2 from "../assets/holiday-shavuot-wheat.png";
+import sukkot1 from "../assets/holiday-sukkot-aravah.png";
+import sukkot2 from "../assets/holiday-sukkot-sukka.png";
+
+const HOLIDAY_ASSETS = {
+  "Chanukah": [chanukah1, chanukah2],
+  "Purim": [purim1, purim2],
+  "Pesach": [pesach1, pesach2],
+  "Shavuot": [shavuot1, shavuot2],
+  "Rosh Hashana": [roshHashana1, roshHashana2],
+  "Sukkot": [sukkot1, sukkot2]
+};
 
 const THEME_CONFIG = {
   memorial: {
@@ -59,6 +81,14 @@ const SlideCard = ({ data, fade = true }) => {
   const isBirthday = data.type === 'birthday';
   const isHealing = data.type === 'healing';
   const isSuccess = data.type === 'success';
+  const isHoliday = data.type === 'holiday';
+
+  const todayHoliday = getCurrentHoliday(new Date());
+  const activeHolidayName = data.holidayOverride || todayHoliday;
+
+  // Safely find matching holiday from our dictionary using .includes()
+  const matchedHolidayKey = activeHolidayName ? Object.keys(HOLIDAY_ASSETS).find(key => activeHolidayName.includes(key)) : null;
+  const activeHolidayImages = matchedHolidayKey ? HOLIDAY_ASSETS[matchedHolidayKey] : null;
 
   const dualImageLayoutTypes = ['memorial', 'birthday', 'healing', 'success'];
   const showTopIcon = data.id !== 'empty' && !dualImageLayoutTypes.includes(data.type);
@@ -74,6 +104,14 @@ const SlideCard = ({ data, fade = true }) => {
   return (
     <div className={`w-full h-full max-h-full flex flex-col relative overflow-hidden transition-all duration-700 ease-in-out transform ${fade ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
 
+      {/* Floating Holiday Corners - Top Right & Bottom Left */}
+      {activeHolidayImages && (
+        <>
+          <img src={activeHolidayImages[0]} className="absolute top-[3vh] right-[4vw] h-[15vh] md:h-[22vh] max-h-[220px] w-auto object-contain drop-shadow-2xl z-20 pointer-events-none animate-in fade-in zoom-in duration-1000" alt="Holiday Top Right" />
+          <img src={activeHolidayImages[1]} className="absolute bottom-[3vh] left-[4vw] h-[15vh] md:h-[22vh] max-h-[220px] w-auto object-contain drop-shadow-2xl z-20 pointer-events-none animate-in fade-in zoom-in duration-1000" alt="Holiday Bottom Left" />
+        </>
+      )}
+
       {/* Outer Glow & Gradient Container */}
       <div className={`p-[1vh] w-full h-full rounded-[3vmin] bg-gradient-to-br ${config.gradient} shadow-[0_2vh_8vh_-2vh] ${config.shadow} transition-all duration-500 overflow-hidden flex flex-col`}>
 
@@ -85,23 +123,13 @@ const SlideCard = ({ data, fade = true }) => {
           <div className={`absolute -bottom-[20vh] -left-[20vh] w-[50vh] h-[50vh] bg-gradient-to-br ${config.gradient} opacity-5 blur-[10vh] rounded-full`} />
 
           {/* MIDDLE STAGE: The "Hero" content area */}
-          <div className={`flex-1 flex flex-col items-center w-full min-h-0 px-[2vw] z-10 ${isMemorial ? 'justify-center gap-[min(2.5vh,20px)]' : 'justify-start pt-[2vh] gap-[6vh]'}`}>
+          <div className={`flex-1 flex flex-col items-center w-full min-h-0 px-[2vw] z-10 ${(isMemorial || isHoliday) ? 'justify-center gap-[min(4vh,40px)]' : 'justify-start pt-[2vh] gap-[6vh]'}`}>
 
             {/* Branding Header */}
-            {data.id !== 'empty' && (
+            {data.id !== 'empty' && !isHoliday && (
               <h2 className="text-[clamp(1rem,3.0vmin,1.8rem)] font-black text-lev-burgundy tracking-[0.15em] drop-shadow-sm leading-none uppercase shrink-0">
                 קפיטריית החסד מוקדשת
               </h2>
-            )}
-
-            {/* Optional Icon (Holiday etc.) */}
-            {data.id !== 'empty' && showTopIcon && (
-              <div className="relative h-[8vh] flex items-center justify-center shrink-0 my-[1vh]">
-                <div className={`absolute inset-0 bg-gradient-to-br ${config.gradient} opacity-20 blur-[4vh] rounded-full animate-pulse scale-150`} />
-                <div className={`${theme.color} filter drop-shadow-xl transform scale-[1.5] animate-float-pulse`}>
-                  {theme.icon}
-                </div>
-              </div>
             )}
 
             {/* Dedication Title */}
@@ -118,7 +146,6 @@ const SlideCard = ({ data, fade = true }) => {
                   {isMemorial && <img src={candleImg} alt="Candle" {...imgProps} />}
                   {isBirthday && <img src={balloonsImg} alt="Balloons" {...imgProps} />}
                   {isHealing && <img src={stethoscopeImg} alt="Stethoscope" {...imgProps} />}
-                  {isSuccess && <img src={starImg} alt="Star" {...imgProps} />}
                 </div>
 
                 <h1 className={`text-[clamp(1.5rem,5vmin,5rem)] font-black text-center break-words text-balance leading-[1.1] tracking-tighter drop-shadow-2xl flex-none max-w-[65%] ${config.name}`}>
@@ -129,7 +156,6 @@ const SlideCard = ({ data, fade = true }) => {
                   {isMemorial && <img src={candleImg} alt="Candle" {...imgProps} />}
                   {isBirthday && <img src={balloonsImg} alt="Balloons" {...imgProps} />}
                   {isHealing && <img src={stethoscopeImg} alt="Stethoscope" {...imgProps} />}
-                  {isSuccess && <img src={starImg} alt="Star" {...imgProps} />}
                 </div>
               </div>
 

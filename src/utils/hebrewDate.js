@@ -57,9 +57,11 @@ const toHebrewYear = (year) => {
   return str;
 };
 
-// Generate years from 5680 (1920) to 5800 (2040)
-const START_YEAR = 5680;
-const END_YEAR = 5800;
+// Generate years: current year +/- 10 years
+const currentYearNum = new HDate().getFullYear();
+export const CURRENT_HEBREW_YEAR = toHebrewYear(currentYearNum);
+const START_YEAR = currentYearNum - 10; 
+const END_YEAR = currentYearNum + 20;   
 export const HEBREW_YEARS = [];
 const YEAR_MAP = {};
 
@@ -68,14 +70,15 @@ for (let y = START_YEAR; y <= END_YEAR; y++) {
   HEBREW_YEARS.push(hebrewYear);
   YEAR_MAP[hebrewYear] = y;
 }
-HEBREW_YEARS.reverse();
+HEBREW_YEARS.reverse(); // Newest years first
 
 
-// Helper to map Hebrew month string to Hebcal month name (transliterated)
+// Helper to map Hebrew month string to Hebcal month index
+// Nisan is 1 in Hebcal
 const MONTH_MAP = {
-  "תשרי": "Tishrei", "חשוון": "Cheshvan", "כסלו": "Kislev", "טבת": "Tevet", "שבט": "Sh'vat",
-  "אדר": "Adar", "אדר א'": "Adar I", "אדר ב'": "Adar II",
-  "ניסן": "Nisan", "אייר": "Iyyar", "סיוון": "Sivan", "תמוז": "Tamuz", "אב": "Av", "אלול": "Elul"
+  "ניסן": 1, "אייר": 2, "סיוון": 3, "תמוז": 4, "אב": 5, "אלול": 6,
+  "תשרי": 7, "חשוון": 8, "כסלו": 9, "טבת": 10, "שבט": 11,
+  "אדר": 12, "אדר א'": 12, "אדר ב'": 13
 };
 
 // Helper to map Hebrew day string to number
@@ -97,11 +100,11 @@ const formatHDateToHebrew = (hDate) => {
 export const getGregorianFromHebrew = (dayStr, monthStr, yearStr) => {
     try {
         const day = DAY_MAP[dayStr];
-        const month = MONTH_MAP[monthStr];
+        const monthIndex = MONTH_MAP[monthStr];
         const year = YEAR_MAP[yearStr];
         
-        if (day && month && year) {
-            const hDate = new HDate(day, month, year);
+        if (day && monthIndex && year) {
+            const hDate = new HDate(day, monthIndex, year);
             return hDate.greg(); // Returns JS Date object
         }
     } catch (e) {
@@ -149,6 +152,87 @@ export const getCurrentHoliday = () => {
   }
 
   return null;
+};
+
+// פונקציה שמחזירה את כל החגים וראשי חודשים של השנה הקרובה (החל מהיום)
+export const getYearHolidays = () => {
+  const now = new Date();
+  const oneYearLater = new Date();
+  oneYearLater.setFullYear(now.getFullYear() + 1);
+  
+  const events = HebrewCalendar.calendar({
+    start: now,
+    end: oneYearLater,
+    il: true,
+    shabbatMevarkhim: false,
+  });
+
+  const holidayList = [];
+  const processedHolidays = new Set();
+  
+  for (const ev of events) {
+    const f = ev.getFlags();
+    const desc = ev.getDesc();
+    const hDate = ev.getDate();
+
+    // Skip minor things
+    if (desc.includes('Omer') || (f & flags.MINOR_FAST) || desc.includes('Parashat')) continue;
+
+    const isChag = (f & flags.CHAG) || desc.includes('Chanukah') || desc.includes('Purim');
+    const isRoshChodesh = (f & flags.ROSH_CHODESH);
+    const isCholHaMoed = (f & flags.CHOL_HAMOED);
+
+    if (isChag || isRoshChodesh || isCholHaMoed) {
+      // Consolidate major holidays (except Rosh Chodesh which we want for every specific day)
+      const baseDesc = desc.replace(/ [IV]+$/, '').replace(/: \d Day$/, '').replace(/ Day \d$/, '').trim();
+      
+      if (!isRoshChodesh && processedHolidays.has(baseDesc + hDate.getFullYear())) continue;
+      if (!isRoshChodesh) processedHolidays.add(baseDesc + hDate.getFullYear());
+
+      // Determine duration
+      let durationDays = 1;
+      let holidayOverride = "";
+      
+      if (desc.includes('Chanukah')) {
+        durationDays = 8;
+        holidayOverride = "Chanukah";
+      } else if (desc.includes('Purim')) {
+        durationDays = 1;
+        holidayOverride = "Purim";
+      } else if (desc.includes('Pesach')) {
+        durationDays = 7;
+        holidayOverride = "Pesach";
+      } else if (desc.includes('Shavuot')) {
+        durationDays = 1;
+        holidayOverride = "Shavuot";
+      } else if (desc.includes('Rosh Hashana')) {
+        durationDays = 2;
+        holidayOverride = "Rosh Hashana";
+      } else if (desc.includes('Sukkot')) {
+        durationDays = 8; 
+        holidayOverride = "Sukkot";
+      }
+
+      const hebrewDateStr = formatHDateToHebrew(hDate);
+      const gregDateStr = hDate.greg().toLocaleDateString('en-CA');
+
+      holidayList.push({
+        id: isRoshChodesh ? `builtin-rc-${desc}-${gregDateStr}` : `builtin-${baseDesc}-${hDate.getFullYear()}`, 
+        type: 'holiday',
+        title: isRoshChodesh ? "ראש חודש טוב" : "חג שמח!",
+        mainName: ev.render('he').replace(/ יום [א-ט]$/, '').replace(/ 'יום [א-ט]$/, '').trim(),
+        subText: isRoshChodesh ? "שנשמע ונתבשר בשורות טובות" : "מאחלים לכל בית ישראל",
+        hebrewDate: hebrewDateStr,
+        gregorianDateString: gregDateStr,
+        date: gregDateStr,
+        holidayOverride: holidayOverride,
+        isBuiltIn: true,
+        durationDays: durationDays
+      });
+    }
+  }
+
+  return holidayList;
 };
 
 /**
