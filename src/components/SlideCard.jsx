@@ -1,6 +1,7 @@
 import candleImg from "../assets/candle-real.png";
 import balloonsImg from "../assets/balloons-real.png";
 import stethoscopeImg from "../assets/stethoscope-real.png";
+import starImg from "../assets/star-real.png";
 import { getTheme } from "../utils/slideUtils";
 import { getCurrentHoliday } from "../utils/hebrewDate";
 
@@ -116,18 +117,18 @@ const SlideCard = ({ data, fade = true }) => {
       <div className={`p-[1vh] w-full h-full rounded-[3vmin] bg-gradient-to-br ${config.gradient} shadow-[0_2vh_8vh_-2vh] ${config.shadow} transition-all duration-500 overflow-hidden flex flex-col`}>
 
         {/* Inner Card (Glassmorphism) */}
-        <div className={`bg-white/95 backdrop-blur-sm flex-1 rounded-[2.2vmin] border-[0.3vh] ${config.border} p-[3.5vh] pb-[12vh] flex flex-col items-center relative overflow-hidden text-center shadow-inner`}>
+        <div className={`bg-white/95 backdrop-blur-sm flex-1 rounded-[2.2vmin] border-[0.3vh] ${config.border} pt-[12vh] pb-[12vh] px-[4vh] flex flex-col items-center relative overflow-hidden text-center shadow-inner`}>
 
           {/* Decorative Background Elements */}
           <div className={`absolute -top-[20vh] -right-[20vh] w-[50vh] h-[50vh] bg-gradient-to-br ${config.gradient} opacity-5 blur-[10vh] rounded-full`} />
           <div className={`absolute -bottom-[20vh] -left-[20vh] w-[50vh] h-[50vh] bg-gradient-to-br ${config.gradient} opacity-5 blur-[10vh] rounded-full`} />
 
           {/* MIDDLE STAGE: The "Hero" content area */}
-          <div className={`flex-1 flex flex-col items-center w-full min-h-0 px-[2vw] z-10 ${(isMemorial || isHoliday) ? 'justify-center gap-[min(4vh,40px)]' : 'justify-start pt-[2vh] gap-[6vh]'}`}>
+          <div className="flex-1 flex flex-col items-center justify-center w-full min-h-0 px-[2vw] z-10 gap-[min(4vh,40px)]">
 
             {/* Branding Header */}
             {data.id !== 'empty' && !isHoliday && (
-              <h2 className="text-[clamp(1rem,3.0vmin,1.8rem)] font-black text-lev-burgundy tracking-[0.15em] drop-shadow-sm leading-none uppercase shrink-0">
+              <h2 className="text-[clamp(1rem,2.8vmin,1.6rem)] font-black text-lev-burgundy tracking-[0.18em] drop-shadow-sm leading-none uppercase shrink-0">
                 קפיטריית החסד מוקדשת
               </h2>
             )}
@@ -146,6 +147,7 @@ const SlideCard = ({ data, fade = true }) => {
                   {isMemorial && <img src={candleImg} alt="Candle" {...imgProps} />}
                   {isBirthday && <img src={balloonsImg} alt="Balloons" {...imgProps} />}
                   {isHealing && <img src={stethoscopeImg} alt="Stethoscope" {...imgProps} />}
+                  {isSuccess && <img src={starImg} alt="Star" {...imgProps} />}
                 </div>
 
                 <h1 className={`text-[clamp(1.5rem,5vmin,5rem)] font-black text-center break-words text-balance leading-[1.1] tracking-tighter drop-shadow-2xl flex-none max-w-[65%] ${config.name}`}>
@@ -156,6 +158,7 @@ const SlideCard = ({ data, fade = true }) => {
                   {isMemorial && <img src={candleImg} alt="Candle" {...imgProps} />}
                   {isBirthday && <img src={balloonsImg} alt="Balloons" {...imgProps} />}
                   {isHealing && <img src={stethoscopeImg} alt="Stethoscope" {...imgProps} />}
+                  {isSuccess && <img src={starImg} alt="Star" {...imgProps} />}
                 </div>
               </div>
 
